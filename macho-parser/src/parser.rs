@@ -22,9 +22,11 @@ pub fn parse<Buf: ReadBytesExt>(buf: &mut Buf) -> MachO {
 }
 
 fn parse_inner<Buf: ReadBytesExt, Endian: ByteOrder>(buf: &mut Buf, magic: Magic) -> MachO {
-    let cpu_type_n = buf.read_u32::<Endian>().expect("Unable to read cpu_type");
-    let cpu_type = CpuType::from_u32(cpu_type_n)
-        .expect(format!("Unsupported cpu type : {}", cpu_type_n).as_str());
+    let cpu_type_n = buf.read_i32::<Endian>().expect("Unable to read cpu_type");
+    let cpu_subtype_n = buf
+        .read_i32::<Endian>()
+        .expect("Unable to read cpu_subtype");
+    let cpu_type = CpuType::from_i32_i32(cpu_type_n, cpu_subtype_n);
 
     let header = Header { magic, cpu_type };
 
