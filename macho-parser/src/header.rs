@@ -78,14 +78,18 @@ pub enum Flag {
     ForceFlat = macho::MH_FORCE_FLAT as isize,
     SubsectionsViaSymbols = macho::MH_SUBSECTIONS_VIA_SYMBOLS as isize,
     NoMultiDefs = macho::MH_NOMULTIDEFS as isize,
+    Pie = macho::MH_PIE as isize,
+    HasTlvDescriptors = macho::MH_HAS_TLV_DESCRIPTORS as isize,
 }
 
 impl Flag {
     pub fn vec_from_u32(flags: u32) -> Vec<Flag> {
         let mut vec = Vec::new();
         for i in 0..=31 {
-            if flags & (1 << i) != 0 {
-                let flag = Flag::from_u32(1 << i).expect("Invalid flag");
+            let flag_n = flags & (1 << i);
+            if flag_n != 0 {
+                let flag =
+                    Flag::from_u32(flag_n).expect(format!("Invalid flag : {:#X}", flag_n).as_str());
                 vec.push(flag);
             }
         }
