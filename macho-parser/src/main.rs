@@ -3,10 +3,16 @@ use std::fs::File;
 
 fn main() {
     let mut file = get_file();
-    let mut buf = Buffer::new(&mut file);
+    let mut buf = Buffer::from_file(&mut file);
 
     let macho = MachO::parse(&mut buf);
     dbg!(macho);
+
+    // 残り
+    buf.get_full_slice()
+        .iter()
+        .skip(buf.pos())
+        .for_each(|byte| print!("{:X} ", byte));
 }
 
 fn get_file() -> File {
