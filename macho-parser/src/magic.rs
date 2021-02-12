@@ -23,3 +23,9 @@ pub enum Magic {
     /// CPU with the **reverse** endianness as the host computer.
     FatCigam = FAT_CIGAM as isize,
 }
+
+impl Magic {
+    pub fn is_64bit(&self) -> bool {
+        matches!(self, Magic::Magic64 | Magic::Cigam64)
+    }
+}

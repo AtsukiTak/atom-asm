@@ -1,6 +1,7 @@
+mod buffer;
 mod header;
+mod load_command;
 mod macho;
 mod magic;
-mod parser;
 
-pub use self::{header::*, macho::MachO, magic::Magic, parser::parse};
+pub use self::{buffer::Buffer, header::*, load_command::*, macho::MachO, magic::Magic};
