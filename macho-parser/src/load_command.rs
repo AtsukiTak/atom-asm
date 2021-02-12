@@ -1,5 +1,8 @@
 use crate::Buffer;
 use mach_object as macho;
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LoadCommand {
@@ -87,7 +90,8 @@ pub struct Section64 {
     align: u32,
     reloff: u32,
     nreloc: u32,
-    flags: u32,
+    sect_type: SectionType,
+    sect_attrs: SectionAttrs,
 }
 
 impl Section64 {
@@ -102,6 +106,9 @@ impl Section64 {
         let nreloc = buf.read_u32();
         let flags = buf.read_u32();
 
+        let sect_type = SectionType::from_u32(flags & 0x000000ff);
+        let sect_attrs = SectionAttrs::from_u32(flags & 0xffffff00);
+
         // skip "reserved" fields
         buf.skip(8);
 
@@ -114,8 +121,61 @@ impl Section64 {
             align,
             reloff,
             nreloc,
-            flags,
+            sect_type,
+            sect_attrs,
         }
+    }
+}
+
+#[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SectionType {
+    Regular = 0x0,
+    ZeroFill = 0x1,
+    CStringLiterals = 0x2,
+    FourByteLiterals = 0x3,
+    EightByteLiterals = 0x4,
+    LiteralPointers = 0x5,
+}
+
+impl SectionType {
+    fn from_u32(n: u32) -> Self {
+        FromPrimitive::from_u32(n).expect("Unsupported section attribute")
+    }
+}
+
+#[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SectionAttr {
+    PureInstructions = 0x80000000,
+    SomeInstructions = 0x00000400,
+}
+
+impl SectionAttr {
+    fn from_u32(n: u32) -> Self {
+        FromPrimitive::from_u32(n).expect("Unsupported section attribute")
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct SectionAttrs {
+    attrs: Vec<SectionAttr>,
+}
+
+impl SectionAttrs {
+    fn from_u32(flags: u32) -> Self {
+        let mut attrs = Vec::new();
+        for i in 8..=31 {
+            let attr_n = flags & (1 << i);
+            if attr_n != 0 {
+                attrs.push(SectionAttr::from_u32(attr_n));
+            }
+        }
+        SectionAttrs { attrs }
+    }
+}
+
+impl fmt::Debug for SectionAttrs {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_set().entries(self.attrs.iter()).finish()
     }
 }
 
