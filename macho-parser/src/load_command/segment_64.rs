@@ -1,27 +1,7 @@
 use crate::Buffer;
-use mach_object as macho;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use std::fmt;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum LoadCommand {
-    Segment64(Segment64),
-    SymTab(SymTab),
-}
-
-impl LoadCommand {
-    pub fn parse(buf: &mut Buffer) -> Self {
-        let cmd_type_n = buf.read_u32();
-        if cmd_type_n == macho::LC_SEGMENT_64 {
-            LoadCommand::Segment64(Segment64::parse(buf))
-        } else if cmd_type_n == macho::LC_SYMTAB {
-            LoadCommand::SymTab(SymTab::parse(buf))
-        } else {
-            panic!("Unsupported cmd_type {}", cmd_type_n);
-        }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Segment64 {
@@ -176,20 +156,5 @@ impl SectionAttrs {
 impl fmt::Debug for SectionAttrs {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_set().entries(self.attrs.iter()).finish()
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SymTab {
-    cmd_size: u32,
-}
-
-impl SymTab {
-    pub fn parse(buf: &mut Buffer) -> Self {
-        let cmd_size = buf.read_u32();
-
-        buf.skip((cmd_size - 4 - 4) as usize);
-
-        SymTab { cmd_size }
     }
 }
