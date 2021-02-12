@@ -36,6 +36,8 @@ pub struct Segment64 {
 
 impl Segment64 {
     pub fn parse(buf: &mut Buffer) -> Self {
+        let start_pos = buf.pos() - 4;
+
         let cmd_size = buf.read_u32();
         let seg_name = buf.read_fixed_size_string(16);
         let vm_addr = buf.read_u64();
@@ -67,16 +69,11 @@ impl Segment64 {
 
         // バイト境界は8に揃えられているので
         // その分をskipする
-        let alignment = 8 - (command.size() % 8);
+        let parsed = buf.pos() - start_pos;
+        let alignment = 8 - (parsed % 8);
         buf.skip(alignment);
 
         command
-    }
-
-    fn size(&self) -> usize {
-        72 + // sizeof(Segment64)
-        76 * // sizeof(Section64)
-        self.sections.len()
     }
 }
 
