@@ -12,6 +12,7 @@ type ReverseEndian = byteorder::BigEndian;
 #[cfg(target_endian = "big")]
 type ReverseEndian = byteorder::LittleEndian;
 
+#[derive(Clone, Debug)]
 pub struct Buffer {
     magic: Magic,
     buf: Cursor<Vec<u8>>,
@@ -51,13 +52,24 @@ impl Buffer {
         self.buf.position() as usize
     }
 
+    pub fn set_pos(&mut self, pos: usize) {
+        self.buf.set_position(pos as u64);
+    }
+
     pub fn get_full_slice(&self) -> &[u8] {
         self.buf.get_ref()
     }
 
     pub fn skip(&mut self, n: usize) {
-        let mut buf = vec![0u8; n];
-        self.buf.read_exact(&mut buf[..n]).unwrap();
+        self.buf.set_position(self.buf.position() + n as u64);
+    }
+
+    pub fn read_u8(&mut self) -> u8 {
+        self.buf.read_u8().unwrap()
+    }
+
+    pub fn read_u16(&mut self) -> u16 {
+        endian_read!(self, read_u16)
     }
 
     pub fn read_i32(&mut self) -> i32 {
