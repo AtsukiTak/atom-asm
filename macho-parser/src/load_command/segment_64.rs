@@ -72,6 +72,7 @@ pub struct Section64 {
     nreloc: u32,
     sect_type: SectionType,
     sect_attrs: SectionAttrs,
+    data: Vec<u8>,
 }
 
 impl Section64 {
@@ -92,6 +93,9 @@ impl Section64 {
         // skip "reserved" fields
         buf.skip(8);
 
+        let data_slice = &buf.get_full_slice()[offset as usize..offset as usize + size as usize];
+        let data = data_slice.to_vec();
+
         Section64 {
             sect_name,
             seg_name,
@@ -103,6 +107,7 @@ impl Section64 {
             nreloc,
             sect_type,
             sect_attrs,
+            data,
         }
     }
 }
