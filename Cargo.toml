@@ -1,4 +1,5 @@
 [workspace]
 members = [
+  "atom-asm",
   "macho-parser"
 ]
