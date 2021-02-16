@@ -1,5 +1,7 @@
 section .text
 global _main
 _main:
-  mov rax, 42
+  mov ax, 22
+  ret
+.hoge:
   ret

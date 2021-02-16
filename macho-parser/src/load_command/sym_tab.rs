@@ -7,8 +7,11 @@ pub struct SymTab {
     cmd_size: u32,
     sym_off: u32,
     n_syms: u32,
+    /// An integer containing the byte offset from the start of the image to the location of the string table.
     str_off: u32,
+    /// the size (in bytes) of the string table.
     str_size: u32,
+
     nlists: Vec<NList64>,
 }
 
@@ -20,11 +23,15 @@ impl SymTab {
         let str_off = buf.read_u32();
         let str_size = buf.read_u32();
 
+        // string table
+        let mut s_table_buf = buf.clone();
+        s_table_buf.set_pos(str_off as usize);
+
         let mut nlist_buf = buf.clone();
         nlist_buf.set_pos(sym_off as usize);
-        let mut nlists = Vec::new();
+        let mut nlists = Vec::with_capacity(n_syms as usize);
         for _ in 0..n_syms {
-            nlists.push(NList64::parse(&mut nlist_buf));
+            nlists.push(NList64::parse(&mut nlist_buf, &mut s_table_buf.clone()));
         }
 
         SymTab {
@@ -40,6 +47,7 @@ impl SymTab {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NList64 {
+    /// An index into the string table. To specify an empty string (""), set this value to 0.
     n_strx: u32,
     n_type: NType,
     /// private external.
@@ -49,11 +57,14 @@ pub struct NList64 {
     n_sect: u8,
     n_desc: u16,
     n_value: u64,
+
+    string: String,
 }
 
 impl NList64 {
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut Buffer, string_table: &mut Buffer) -> Self {
         let n_strx = buf.read_u32();
+        let string = string_table.skip(n_strx as usize).read_c_string();
 
         let n_type_n = buf.read_u8();
         let n_stab = n_type_n & 0b1110_0000;
@@ -77,6 +88,7 @@ impl NList64 {
             n_sect,
             n_desc,
             n_value,
+            string,
         }
     }
 }

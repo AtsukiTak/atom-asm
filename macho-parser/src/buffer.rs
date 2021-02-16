@@ -4,6 +4,7 @@ use num_traits::FromPrimitive as _;
 use std::{
     fs::File,
     io::{Cursor, Read},
+    sync::Arc,
 };
 
 #[cfg(target_endian = "little")]
@@ -15,7 +16,30 @@ type ReverseEndian = byteorder::LittleEndian;
 #[derive(Clone, Debug)]
 pub struct Buffer {
     magic: Magic,
-    buf: Cursor<Vec<u8>>,
+    buf: Cursor<ArcVec>,
+}
+
+#[derive(Clone, Debug)]
+struct ArcVec(Arc<Vec<u8>>);
+
+impl ArcVec {
+    fn new(vec: Vec<u8>) -> Self {
+        ArcVec(Arc::new(vec))
+    }
+}
+
+impl AsRef<[u8]> for ArcVec {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref().as_ref()
+    }
+}
+
+impl std::ops::Deref for ArcVec {
+    type Target = [u8];
+
+    fn deref(&self) -> &[u8] {
+        self.as_ref()
+    }
 }
 
 macro_rules! endian_read {
@@ -29,7 +53,8 @@ macro_rules! endian_read {
 }
 
 impl Buffer {
-    pub fn new(mut buf: Cursor<Vec<u8>>) -> Self {
+    pub fn new(vec: Vec<u8>) -> Self {
+        let mut buf = Cursor::new(ArcVec::new(vec));
         let magic_n = buf
             .read_u32::<NativeEndian>()
             .expect("Unable to read magic number");
@@ -41,7 +66,7 @@ impl Buffer {
     pub fn from_file(file: &mut File) -> Self {
         let mut vec = Vec::new();
         file.read_to_end(&mut vec).unwrap();
-        Buffer::new(Cursor::new(vec))
+        Buffer::new(vec)
     }
 
     pub fn magic(&self) -> &Magic {
@@ -60,8 +85,9 @@ impl Buffer {
         self.buf.get_ref()
     }
 
-    pub fn skip(&mut self, n: usize) {
+    pub fn skip(&mut self, n: usize) -> &mut Buffer {
         self.buf.set_position(self.buf.position() + n as u64);
+        self
     }
 
     pub fn read_u8(&mut self) -> u8 {
@@ -91,5 +117,14 @@ impl Buffer {
         let buf = buf.split(|&b| b == 0).next().unwrap().to_vec();
 
         String::from_utf8(buf).unwrap()
+    }
+
+    pub fn read_c_string(&mut self) -> String {
+        (&mut self.buf)
+            .bytes()
+            .map(Result::unwrap)
+            .take_while(|byte| *byte != 0)
+            .map(char::from)
+            .collect::<String>()
     }
 }
