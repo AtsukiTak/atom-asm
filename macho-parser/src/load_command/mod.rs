@@ -5,7 +5,6 @@ pub use self::segment_64::{Section64, SectionAttr, SectionAttrs, SectionType, Se
 pub use self::sym_tab::SymTab;
 
 use crate::Buffer;
-use mach_object as macho;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LoadCommand {
@@ -14,11 +13,14 @@ pub enum LoadCommand {
 }
 
 impl LoadCommand {
+    const LC_SEGMENT_64: u32 = 0x19;
+    const LC_SYMTAB: u32 = 0x02;
+
     pub fn parse(buf: &mut Buffer) -> Self {
         let cmd_type_n = buf.read_u32();
-        if cmd_type_n == macho::LC_SEGMENT_64 {
+        if cmd_type_n == Self::LC_SEGMENT_64 {
             LoadCommand::Segment64(Segment64::parse(buf))
-        } else if cmd_type_n == macho::LC_SYMTAB {
+        } else if cmd_type_n == Self::LC_SYMTAB {
             LoadCommand::SymTab(SymTab::parse(buf))
         } else {
             panic!("Unsupported cmd_type {}", cmd_type_n);

@@ -1,5 +1,4 @@
 use crate::{Buffer, Magic};
-use mach_object as macho;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive as _;
 use std::fmt;
@@ -45,17 +44,21 @@ pub enum CpuType {
     X86_64(CpuSubTypeX86_64),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CpuSubTypeX86 {
-    All,
+    All = 0x3,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CpuSubTypeX86_64 {
-    All,
+    All = 0x3,
 }
 
 impl CpuType {
+    const CPU_ARCH_ABI64: i32 = 0x01000000;
+    const CPU_TYPE_X86: i32 = 0x7;
+    const CPU_TYPE_X86_64: i32 = Self::CPU_TYPE_X86 | Self::CPU_ARCH_ABI64;
+
     pub fn parse(buf: &mut Buffer) -> Self {
         let cpu_type_n = buf.read_i32();
         let cpu_subtype_n = buf.read_i32();
@@ -64,22 +67,20 @@ impl CpuType {
 
     pub fn from_i32_i32(cpu_type_n: i32, cpu_subtype_n: i32) -> Self {
         // x86
-        if cpu_type_n == macho::CPU_TYPE_X86 {
-            if cpu_subtype_n == macho::CPU_SUBTYPE_X86_ALL {
-                CpuType::X86(CpuSubTypeX86::All)
-            } else {
-                panic!("Unsupported cpu_subtype {} of x86 cpu_type", cpu_subtype_n);
-            }
+        if cpu_type_n == Self::CPU_TYPE_X86 {
+            let cpu_subtype = CpuSubTypeX86::from_i32(cpu_subtype_n).unwrap_or_else(|| {
+                panic!("Unsupported cpu_subtype {} of x86 cpu_type", cpu_subtype_n)
+            });
+            CpuType::X86(cpu_subtype)
         // x86_64
-        } else if cpu_type_n == macho::CPU_TYPE_X86_64 {
-            if cpu_subtype_n == macho::CPU_SUBTYPE_X86_64_ALL {
-                CpuType::X86_64(CpuSubTypeX86_64::All)
-            } else {
+        } else if cpu_type_n == Self::CPU_TYPE_X86_64 {
+            let cpu_subtype = CpuSubTypeX86_64::from_i32(cpu_subtype_n).unwrap_or_else(|| {
                 panic!(
                     "Unsupported cpu_subtype {} of x86_64 cpu_type",
                     cpu_subtype_n
-                );
-            }
+                )
+            });
+            CpuType::X86_64(cpu_subtype)
         } else {
             panic!("Unsupported cpu_type {}", cpu_type_n);
         }
@@ -87,43 +88,46 @@ impl CpuType {
 }
 
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
+/// Declared in /usr/include/mach-o/loader.h
 pub enum FileType {
-    Object = macho::MH_OBJECT as isize,
-    Execute = macho::MH_EXECUTE as isize,
-    Bundle = macho::MH_BUNDLE as isize,
-    Dylib = macho::MH_DYLIB as isize,
-    Preload = macho::MH_PRELOAD as isize,
-    Core = macho::MH_CORE as isize,
-    Dylinker = macho::MH_DYLINKER as isize,
-    Dsym = macho::MH_DSYM as isize,
+    Object = 0x1,
+    Execute = 0x2,
+    FVMLib = 0x3,
+    Core = 0x4,
+    Preload = 0x5,
+    Dylib = 0x6,
+    Dylinker = 0x7,
+    Bundle = 0x8,
+    Dsym = 0xA,
 }
 
 impl FileType {
     pub fn parse(buf: &mut Buffer) -> Self {
         let file_type_n = buf.read_u32();
         FileType::from_u32(file_type_n)
-            .expect(format!("Invalid file_type number {}", file_type_n).as_str())
+            .expect(format!("Unsupported file_type number {}", file_type_n).as_str())
     }
 }
 
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
+#[rustfmt::skip]
 pub enum Flag {
-    NoUndefs = macho::MH_NOUNDEFS as isize,
-    IncrLink = macho::MH_INCRLINK as isize,
-    DyldLink = macho::MH_DYLDLINK as isize,
-    TwoLevel = macho::MH_TWOLEVEL as isize,
-    BindAtLoad = macho::MH_BINDATLOAD as isize,
-    PreBound = macho::MH_PREBOUND as isize,
-    PreBindable = macho::MH_PREBINDABLE as isize,
-    NoFixPreBinding = macho::MH_NOFIXPREBINDING as isize,
-    AllModsBound = macho::MH_ALLMODSBOUND as isize,
-    Canonical = macho::MH_CANONICAL as isize,
-    SplitSegs = macho::MH_SPLIT_SEGS as isize,
-    ForceFlat = macho::MH_FORCE_FLAT as isize,
-    SubsectionsViaSymbols = macho::MH_SUBSECTIONS_VIA_SYMBOLS as isize,
-    NoMultiDefs = macho::MH_NOMULTIDEFS as isize,
-    Pie = macho::MH_PIE as isize,
-    HasTlvDescriptors = macho::MH_HAS_TLV_DESCRIPTORS as isize,
+    NoUndefs                = 0x000001,
+    IncrLink                = 0x000002,
+    DyldLink                = 0x000004,
+    BindAtLoad              = 0x000008,
+    PreBound                = 0x000010,
+    SplitSegs               = 0x000020,
+    TwoLevel                = 0x000080,
+    ForceFlat               = 0x000100,
+    NoMultiDefs             = 0x000200,
+    NoFixPreBinding         = 0x000400,
+    PreBindable             = 0x000800,
+    AllModsBound            = 0x001000,
+    SubsectionsViaSymbols   = 0x002000,
+    Canonical               = 0x004000,
+    Pie                     = 0x200000,
+    HasTlvDescriptors       = 0x800000,
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -139,8 +143,8 @@ impl Flags {
         for i in 0..=31 {
             let flag_n = flags_n & (1 << i);
             if flag_n != 0 {
-                let flag =
-                    Flag::from_u32(flag_n).expect(format!("Invalid flag : {:#X}", flag_n).as_str());
+                let flag = Flag::from_u32(flag_n)
+                    .expect(format!("Unsupported flag : {:#X}", flag_n).as_str());
                 flags.push(flag);
             }
         }
