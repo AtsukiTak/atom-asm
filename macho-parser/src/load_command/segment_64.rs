@@ -90,8 +90,8 @@ impl Section64 {
         let sect_type = SectionType::from_u32(flags & 0x000000ff);
         let sect_attrs = SectionAttrs::from_u32(flags & 0xffffff00);
 
-        // skip "reserved" fields
-        buf.skip(8);
+        // skip "reserved[1,2,3]" fields
+        buf.skip(12);
 
         let data_start = offset as usize;
         let data_end = data_start + size as usize;
