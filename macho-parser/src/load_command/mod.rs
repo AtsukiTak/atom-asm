@@ -23,7 +23,7 @@ impl LoadCommand {
         } else if cmd_type_n == Self::LC_SYMTAB {
             LoadCommand::SymTab(SymTab::parse(buf))
         } else {
-            panic!("Unsupported cmd_type {}", cmd_type_n);
+            panic!("Unsupported cmd_type 0x{:X}", cmd_type_n);
         }
     }
 }

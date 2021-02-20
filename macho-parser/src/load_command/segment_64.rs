@@ -53,7 +53,7 @@ impl Segment64 {
         // バイト境界は8に揃えられているので
         // その分をskipする
         let parsed = buf.pos() - start_pos;
-        let alignment = 8 - (parsed % 8);
+        let alignment = (8 - (parsed % 8)) % 8;
         buf.skip(alignment);
 
         command
