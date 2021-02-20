@@ -122,23 +122,40 @@ pub enum SectionType {
     FourByteLiterals = 0x3,
     EightByteLiterals = 0x4,
     LiteralPointers = 0x5,
+    Coalesced = 0xB,
 }
 
 impl SectionType {
     fn from_u32(n: u32) -> Self {
-        FromPrimitive::from_u32(n).expect("Unsupported section attribute")
+        FromPrimitive::from_u32(n).unwrap_or_else(|| panic!("Unsupported section type 0x{:X}", n))
     }
 }
 
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SectionAttr {
     PureInstructions = 0x80000000,
+    /// section contains coalesced symbols that are not to be
+    /// in a ranlib table of contents
+    NoToc = 0x40000000,
+    /// ok to strip static symbols in this section in files with the MH_DYLDLINK flag
+    StripStaticSyms = 0x20000000,
+    /// blocks are live if they reference live blocks
+    LiveSupport = 0x08000000,
+    /// If a segment contains any sections marked with S_ATTR_DEBUG then all
+    /// sections in that segment must have this attribute.  No section other than
+    /// a section marked with this attribute may reference the contents of this
+    /// section.  A section with this attribute may contain no symbols and must have
+    /// a section type S_REGULAR.  The static linker will not copy section contents
+    /// from sections with this attribute into its output file.  These sections
+    /// generally contain DWARF debugging info.
+    Debug = 0x02000000,
     SomeInstructions = 0x00000400,
 }
 
 impl SectionAttr {
     fn from_u32(n: u32) -> Self {
-        FromPrimitive::from_u32(n).expect("Unsupported section attribute")
+        FromPrimitive::from_u32(n)
+            .unwrap_or_else(|| panic!("Unsupported section attribute 0x{:X}", n))
     }
 }
 
