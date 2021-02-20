@@ -10,3 +10,6 @@ edition = "2018"
 byteorder = "1.4.2"
 num-traits = "0.2.14"
 num-derive = "0.3.3"
+
+[dev-dependencies]
+mach_object = "0.1.14"
