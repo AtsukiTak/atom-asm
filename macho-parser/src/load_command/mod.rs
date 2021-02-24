@@ -1,10 +1,12 @@
-mod build_version;
-mod segment_64;
-mod sym_tab;
+pub mod build_version;
+pub mod dy_sym_tab;
+pub mod segment_64;
+pub mod sym_tab;
 
-pub use self::build_version::{BuildToolVersion, BuildVersion};
-pub use self::segment_64::{Section64, SectionAttr, SectionAttrs, SectionType, Segment64};
-pub use self::sym_tab::SymTab;
+use self::build_version::BuildVersion;
+use self::dy_sym_tab::DySymTab;
+use self::segment_64::Segment64;
+use self::sym_tab::SymTab;
 
 use crate::Buffer;
 
@@ -12,12 +14,14 @@ use crate::Buffer;
 pub enum LoadCommand {
     Segment64(Segment64),
     SymTab(SymTab),
+    DySymTab(DySymTab),
     BuildVersion(BuildVersion),
 }
 
 impl LoadCommand {
     const LC_SEGMENT_64: u32 = 0x19;
     const LC_SYMTAB: u32 = 0x02;
+    const LC_DYSYMTAB: u32 = 0x0B;
     const LC_BUILD_VERSION: u32 = 0x32;
 
     pub fn parse(buf: &mut Buffer) -> Self {
@@ -28,6 +32,7 @@ impl LoadCommand {
             Self::LC_SEGMENT_64 => LC::Segment64(Segment64::parse(buf)),
             Self::LC_SYMTAB => LC::SymTab(SymTab::parse(buf)),
             Self::LC_BUILD_VERSION => LC::BuildVersion(BuildVersion::parse(buf)),
+            Self::LC_DYSYMTAB => LC::DySymTab(DySymTab::parse(buf)),
             _ => panic!("Unsupported cmd_type 0x{:X}", cmd_type_n),
         }
     }
