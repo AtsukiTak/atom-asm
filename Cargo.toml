@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "atom-asm",
-  "macho-types",
-  "macho-parser"
+  "atom-x86-asm",
+  "atom-macho-types",
+  "atom-macho-parser"
 ]

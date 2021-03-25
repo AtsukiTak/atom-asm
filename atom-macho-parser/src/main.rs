@@ -1,4 +1,4 @@
-use macho_types::{Buffer, MachO};
+use atom_macho_types::{Buffer, MachO};
 use std::{fs::File, io::Read as _};
 
 fn main() {

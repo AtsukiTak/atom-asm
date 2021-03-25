@@ -20,6 +20,30 @@ name = "atom-asm"
 version = "0.1.0"
 
 [[package]]
+name = "atom-macho-parser"
+version = "0.1.0"
+dependencies = [
+ "atom-macho-types",
+ "byteorder",
+ "mach_object",
+ "num-derive",
+ "num-traits",
+]
+
+[[package]]
+name = "atom-macho-types"
+version = "0.1.0"
+dependencies = [
+ "byteorder",
+ "num-derive",
+ "num-traits",
+]
+
+[[package]]
+name = "atom-x86-asm"
+version = "0.1.0"
+
+[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -120,26 +144,6 @@ dependencies = [
  "log",
  "time",
  "uuid",
-]
-
-[[package]]
-name = "macho-parser"
-version = "0.1.0"
-dependencies = [
- "byteorder",
- "mach_object",
- "macho-types",
- "num-derive",
- "num-traits",
-]
-
-[[package]]
-name = "macho-types"
-version = "0.1.0"
-dependencies = [
- "byteorder",
- "num-derive",
- "num-traits",
 ]
 
 [[package]]
