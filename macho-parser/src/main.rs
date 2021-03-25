@@ -1,9 +1,12 @@
-use macho_parser::{Buffer, MachO};
-use std::fs::File;
+use macho_types::{Buffer, MachO};
+use std::{fs::File, io::Read as _};
 
 fn main() {
     let mut file = get_file();
-    let mut buf = Buffer::from_file(&mut file);
+    let mut vec = Vec::new();
+    file.read_to_end(&mut vec).unwrap();
+
+    let mut buf = Buffer::new(vec);
 
     let macho = MachO::parse(&mut buf);
     dbg!(macho);

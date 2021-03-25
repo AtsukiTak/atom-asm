@@ -2,7 +2,6 @@ use crate::Magic;
 use byteorder::{NativeEndian, ReadBytesExt as _};
 use num_traits::FromPrimitive as _;
 use std::{
-    fs::File,
     io::{Cursor, Read},
     sync::Arc,
 };
@@ -17,29 +16,6 @@ type ReverseEndian = byteorder::LittleEndian;
 pub struct Buffer {
     magic: Magic,
     buf: Cursor<ArcVec>,
-}
-
-#[derive(Clone, Debug)]
-struct ArcVec(Arc<Vec<u8>>);
-
-impl ArcVec {
-    fn new(vec: Vec<u8>) -> Self {
-        ArcVec(Arc::new(vec))
-    }
-}
-
-impl AsRef<[u8]> for ArcVec {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_ref().as_ref()
-    }
-}
-
-impl std::ops::Deref for ArcVec {
-    type Target = [u8];
-
-    fn deref(&self) -> &[u8] {
-        self.as_ref()
-    }
 }
 
 macro_rules! endian_read {
@@ -61,12 +37,6 @@ impl Buffer {
         let magic = Magic::from_u32(magic_n).expect("Invalid magic number");
 
         Buffer { magic, buf }
-    }
-
-    pub fn from_file(file: &mut File) -> Self {
-        let mut vec = Vec::new();
-        file.read_to_end(&mut vec).unwrap();
-        Buffer::new(vec)
     }
 
     pub fn magic(&self) -> &Magic {
@@ -126,5 +96,28 @@ impl Buffer {
             .take_while(|byte| *byte != 0)
             .map(char::from)
             .collect::<String>()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct ArcVec(Arc<Vec<u8>>);
+
+impl ArcVec {
+    fn new(vec: Vec<u8>) -> Self {
+        ArcVec(Arc::new(vec))
+    }
+}
+
+impl AsRef<[u8]> for ArcVec {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref().as_ref()
+    }
+}
+
+impl std::ops::Deref for ArcVec {
+    type Target = [u8];
+
+    fn deref(&self) -> &[u8] {
+        self.as_ref()
     }
 }

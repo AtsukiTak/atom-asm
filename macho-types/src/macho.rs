@@ -13,7 +13,6 @@ impl MachO {
         let mut load_commands = Vec::new();
         for _ in 0..header.n_cmds {
             let cmd = LoadCommand::parse(buf);
-            dbg!(&cmd);
             load_commands.push(cmd);
         }
 

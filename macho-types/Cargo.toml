@@ -1,5 +1,5 @@
 [package]
-name = "macho-parser"
+name = "macho-types"
 version = "0.1.0"
 authors = ["AtsukiTak <takatomgoo@gmail.com>"]
 edition = "2018"
@@ -10,9 +10,3 @@ edition = "2018"
 byteorder = "1.4.2"
 num-traits = "0.2.14"
 num-derive = "0.3.3"
-
-[dependencies.macho-types]
-path = "../macho-types"
-
-[dev-dependencies]
-mach_object = "0.1.14"
