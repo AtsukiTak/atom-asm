@@ -36,4 +36,26 @@ impl LoadCommand {
             _ => panic!("Unsupported cmd_type 0x{:X}", cmd_type_n),
         }
     }
+
+    pub fn cmd(&self) -> u32 {
+        use LoadCommand as LC;
+
+        match self {
+            LC::Segment64(_) => Self::LC_SEGMENT_64,
+            LC::SymTab(_) => Self::LC_SYMTAB,
+            LC::DySymTab(_) => Self::LC_DYSYMTAB,
+            LC::BuildVersion(_) => Self::LC_BUILD_VERSION,
+        }
+    }
+
+    pub fn cmd_size(&self) -> u32 {
+        use LoadCommand as LC;
+
+        match self {
+            LC::Segment64(cmd) => cmd.cmd_size,
+            LC::SymTab(cmd) => cmd.cmd_size,
+            LC::DySymTab(cmd) => cmd.cmd_size,
+            LC::BuildVersion(cmd) => cmd.cmd_size,
+        }
+    }
 }

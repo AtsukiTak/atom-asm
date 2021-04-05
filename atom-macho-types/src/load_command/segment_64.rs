@@ -5,16 +5,16 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Segment64 {
-    cmd_size: u32,
-    seg_name: String,
-    vm_addr: u64,
-    vm_size: u64,
-    file_off: u64,
-    file_size: u64,
-    max_prot: i32,
-    init_prot: i32,
-    flags: u32,
-    sections: Vec<Section64>,
+    pub cmd_size: u32,
+    pub seg_name: String,
+    pub vm_addr: u64,
+    pub vm_size: u64,
+    pub file_off: u64,
+    pub file_size: u64,
+    pub max_prot: i32,
+    pub init_prot: i32,
+    pub flags: u32,
+    pub sections: Vec<Section64>,
 }
 
 impl Segment64 {

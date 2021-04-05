@@ -4,15 +4,15 @@ use num_traits::FromPrimitive;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SymTab {
-    cmd_size: u32,
-    sym_off: u32,
-    n_syms: u32,
+    pub cmd_size: u32,
+    pub sym_off: u32,
+    pub n_syms: u32,
     /// An integer containing the byte offset from the start of the image to the location of the string table.
-    str_off: u32,
+    pub str_off: u32,
     /// the size (in bytes) of the string table.
-    str_size: u32,
+    pub str_size: u32,
 
-    nlists: Vec<NList64>,
+    pub nlists: Vec<NList64>,
 }
 
 impl SymTab {

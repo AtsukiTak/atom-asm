@@ -40,48 +40,48 @@ use crate::Buffer;
 /// off the section structures.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DySymTab {
-    cmdsize: u32,
+    pub cmd_size: u32,
     /// index to local symbols
-    ilocalsym: u32,
+    pub ilocalsym: u32,
     /// number of local symbols
-    nlocalsym: u32,
+    pub nlocalsym: u32,
     /// index to externally defined symbols
-    iextdefsym: u32,
+    pub iextdefsym: u32,
     /// number of externally defined symbols
-    nextdefsym: u32,
+    pub nextdefsym: u32,
     /// index to undefined symbols
-    iundefsym: u32,
+    pub iundefsym: u32,
     /// number of undefined symbols
-    nundefsym: u32,
+    pub nundefsym: u32,
     /// file offset to table of contents
-    tocoff: u32,
+    pub tocoff: u32,
     /// number of entries in table of contents
-    ntoc: u32,
+    pub ntoc: u32,
     /// file offset to module table
-    modtaboff: u32,
+    pub modtaboff: u32,
     /// number of module table entries
-    nmodtab: u32,
+    pub nmodtab: u32,
     /// offset to referenced symbol table
-    extrefsymoff: u32,
+    pub extrefsymoff: u32,
     /// number of referenced symbol table entries
-    nextrefsyms: u32,
+    pub nextrefsyms: u32,
     /// file offset to the indirect symbol table
-    indirectsymoff: u32,
+    pub indirectsymoff: u32,
     /// number of indirect symbol table entries
-    nindirectsyms: u32,
+    pub nindirectsyms: u32,
     /// offset to external relocation entries
-    extreloff: u32,
+    pub extreloff: u32,
     /// number of external relocation entries
-    nextrel: u32,
+    pub nextrel: u32,
     /// offset to local relocation entries
-    locreloff: u32,
+    pub locreloff: u32,
     /// number of local relocation entries
-    nlocrel: u32,
+    pub nlocrel: u32,
 }
 
 impl DySymTab {
     pub fn parse(buf: &mut Buffer) -> Self {
-        let cmdsize = buf.read_u32();
+        let cmd_size = buf.read_u32();
         let ilocalsym = buf.read_u32();
         let nlocalsym = buf.read_u32();
         let iextdefsym = buf.read_u32();
@@ -102,7 +102,7 @@ impl DySymTab {
         let nlocrel = buf.read_u32();
 
         DySymTab {
-            cmdsize,
+            cmd_size,
             ilocalsym,
             nlocalsym,
             iextdefsym,

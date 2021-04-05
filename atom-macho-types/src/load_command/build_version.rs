@@ -8,13 +8,13 @@ use num_traits::FromPrimitive as _;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BuildVersion {
     /// sizeof(BuildVersion) + ntools * sizeof(BuildToolVersion)
-    cmd_size: u32,
-    platform: Platform,
-    minos: Version,
-    sdk: Version,
-    ntools: u32,
+    pub cmd_size: u32,
+    pub platform: Platform,
+    pub minos: Version,
+    pub sdk: Version,
+    pub ntools: u32,
 
-    tools: Vec<BuildToolVersion>,
+    pub tools: Vec<BuildToolVersion>,
 }
 
 impl BuildVersion {
