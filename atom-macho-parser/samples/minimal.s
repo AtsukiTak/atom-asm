@@ -1,7 +1,5 @@
 section .text
 global _main
 _main:
-  mov ax, 22
-  ret
-.hoge:
+  mov ax, 42
   ret
