@@ -1,4 +1,6 @@
+use crate::Buffer;
 use num_derive::FromPrimitive;
+use num_traits::FromPrimitive as _;
 
 /// An integer containing a value identifying this file as a Mach-O file.
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
@@ -26,5 +28,21 @@ pub enum Magic {
 impl Magic {
     pub fn is_64bit(&self) -> bool {
         matches!(self, Magic::Magic64 | Magic::Cigam64)
+    }
+
+    pub fn parse(buf: &mut Buffer) -> Magic {
+        assert!(buf.is_native_endian());
+
+        let magic_n = buf.read_u32();
+        let magic = Magic::from_u32(magic_n).expect("Invalid magic number");
+
+        match magic {
+            Magic::Cigam64 | Magic::Cigam | Magic::FatCigam => {
+                buf.set_reverse_endian();
+            }
+            _ => {}
+        }
+
+        magic
     }
 }

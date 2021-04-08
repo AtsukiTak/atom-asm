@@ -15,7 +15,7 @@ pub struct Header {
 
 impl Header {
     pub fn parse(buf: &mut Buffer) -> Self {
-        let magic = *buf.magic();
+        let magic = Magic::parse(buf);
         let cpu_type = CpuType::parse(buf);
         let file_type = FileType::parse(buf);
         let n_cmds = buf.read_u32();

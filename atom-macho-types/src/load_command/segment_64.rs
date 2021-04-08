@@ -19,6 +19,7 @@ pub struct Segment64 {
 
 impl Segment64 {
     pub fn parse(buf: &mut Buffer) -> Self {
+        // cmd_typeの分、start_posは今の位置よりも前
         let start_pos = buf.pos() - 4;
 
         let cmd_size = buf.read_u32();

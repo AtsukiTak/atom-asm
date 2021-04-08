@@ -1,6 +1,4 @@
-use crate::Magic;
 use byteorder::{NativeEndian, ReadBytesExt as _};
-use num_traits::FromPrimitive as _;
 use std::{
     io::{Cursor, Read},
     sync::Arc,
@@ -14,33 +12,41 @@ type ReverseEndian = byteorder::LittleEndian;
 
 #[derive(Clone, Debug)]
 pub struct Buffer {
-    magic: Magic,
+    endian: Endian,
     buf: Cursor<ArcVec>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Endian {
+    Native,
+    Reverse,
 }
 
 macro_rules! endian_read {
     ($self:expr, $func:ident) => {
-        match $self.magic {
-            Magic::Magic64 => $self.buf.$func::<NativeEndian>().unwrap(),
-            Magic::Cigam64 => $self.buf.$func::<ReverseEndian>().unwrap(),
-            _ => unimplemented!(),
+        match $self.endian {
+            Endian::Native => $self.buf.$func::<NativeEndian>().unwrap(),
+            Endian::Reverse => $self.buf.$func::<ReverseEndian>().unwrap(),
         }
     };
 }
 
 impl Buffer {
+    /// バイト列から、新しいBufferを生成する
+    /// EndianはNativeEndian
     pub fn new(vec: Vec<u8>) -> Self {
-        let mut buf = Cursor::new(ArcVec::new(vec));
-        let magic_n = buf
-            .read_u32::<NativeEndian>()
-            .expect("Unable to read magic number");
-        let magic = Magic::from_u32(magic_n).expect("Invalid magic number");
-
-        Buffer { magic, buf }
+        Buffer {
+            endian: Endian::Native,
+            buf: Cursor::new(ArcVec::new(vec)),
+        }
     }
 
-    pub fn magic(&self) -> &Magic {
-        &self.magic
+    pub fn is_native_endian(&self) -> bool {
+        self.endian == Endian::Native
+    }
+
+    pub fn set_reverse_endian(&mut self) {
+        self.endian = Endian::Reverse;
     }
 
     pub fn pos(&self) -> usize {
