@@ -16,6 +16,15 @@ pub struct Header {
 impl Header {
     pub fn parse(buf: &mut Buffer) -> Self {
         let magic = Magic::parse(buf);
+
+        // reverse byte endian if necessary
+        match magic {
+            Magic::Cigam64 | Magic::Cigam | Magic::FatCigam => {
+                buf.set_reverse_endian();
+            }
+            _ => {}
+        }
+
         let cpu_type = CpuType::parse(buf);
         let file_type = FileType::parse(buf);
         let n_cmds = buf.read_u32();

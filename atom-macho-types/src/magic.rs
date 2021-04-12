@@ -34,15 +34,6 @@ impl Magic {
         assert!(buf.is_native_endian());
 
         let magic_n = buf.read_u32();
-        let magic = Magic::from_u32(magic_n).expect("Invalid magic number");
-
-        match magic {
-            Magic::Cigam64 | Magic::Cigam | Magic::FatCigam => {
-                buf.set_reverse_endian();
-            }
-            _ => {}
-        }
-
-        magic
+        Magic::from_u32(magic_n).expect("Invalid magic number")
     }
 }
