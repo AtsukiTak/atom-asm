@@ -1,4 +1,4 @@
-use crate::{Buffer, Magic, WriteBuf};
+use crate::{Magic, ReadBuf, WriteBuf};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive as _;
 use std::fmt;
@@ -14,7 +14,7 @@ pub struct Header {
 }
 
 impl Header {
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         let magic = Magic::parse(buf);
 
         // reverse byte endian if necessary
@@ -73,7 +73,7 @@ impl CpuType {
     const CPU_TYPE_X86: i32 = 0x7;
     const CPU_TYPE_X86_64: i32 = Self::CPU_TYPE_X86 | Self::CPU_ARCH_ABI64;
 
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         let cpu_type_n = buf.read_i32();
         let cpu_subtype_n = buf.read_i32();
         Self::from_i32_i32(cpu_type_n, cpu_subtype_n)
@@ -116,7 +116,7 @@ pub enum FileType {
 }
 
 impl FileType {
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         let file_type_n = buf.read_u32();
         FileType::from_u32(file_type_n)
             .expect(format!("Unsupported file_type number {}", file_type_n).as_str())
@@ -150,7 +150,7 @@ pub struct Flags {
 }
 
 impl Flags {
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         let flags_n = buf.read_u32();
 
         let mut flags = Vec::new();

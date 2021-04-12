@@ -1,4 +1,4 @@
-use crate::{Buffer, WriteBuf};
+use crate::{ReadBuf, WriteBuf};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive as _;
 
@@ -30,7 +30,7 @@ impl Magic {
         matches!(self, Magic::Magic64 | Magic::Cigam64)
     }
 
-    pub fn parse(buf: &mut Buffer) -> Magic {
+    pub fn parse(buf: &mut ReadBuf) -> Magic {
         assert!(buf.is_native_endian());
 
         let magic_n = buf.read_u32();
@@ -38,6 +38,6 @@ impl Magic {
     }
 
     pub fn write(&self, buf: &mut WriteBuf) {
-        buf.write_32(*self as u32);
+        buf.write_u32(*self as u32);
     }
 }

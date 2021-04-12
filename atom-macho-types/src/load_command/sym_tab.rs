@@ -1,4 +1,4 @@
-use crate::Buffer;
+use crate::ReadBuf;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
@@ -16,7 +16,7 @@ pub struct SymTab {
 }
 
 impl SymTab {
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         let cmd_size = buf.read_u32();
         let sym_off = buf.read_u32();
         let n_syms = buf.read_u32();
@@ -62,7 +62,7 @@ pub struct NList64 {
 }
 
 impl NList64 {
-    pub fn parse(buf: &mut Buffer, string_table: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf, string_table: &mut ReadBuf) -> Self {
         let n_strx = buf.read_u32();
         let string = string_table.skip(n_strx as usize).read_c_string();
 

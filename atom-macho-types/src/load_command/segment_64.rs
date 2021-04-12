@@ -1,4 +1,4 @@
-use crate::Buffer;
+use crate::ReadBuf;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use std::fmt;
@@ -18,7 +18,7 @@ pub struct Segment64 {
 }
 
 impl Segment64 {
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         // cmd_typeの分、start_posは今の位置よりも前
         let start_pos = buf.pos() - 4;
 
@@ -77,7 +77,7 @@ pub struct Section64 {
 }
 
 impl Section64 {
-    fn parse(buf: &mut Buffer) -> Self {
+    fn parse(buf: &mut ReadBuf) -> Self {
         let sect_name = buf.read_fixed_size_string(16);
         let seg_name = buf.read_fixed_size_string(16);
         let addr = buf.read_u64();

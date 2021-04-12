@@ -1,4 +1,4 @@
-use crate::Buffer;
+use crate::ReadBuf;
 
 /// This is the second set of the symbolic information which is used to support
 /// the data structures for the dynamically link editor.
@@ -80,7 +80,7 @@ pub struct DySymTab {
 }
 
 impl DySymTab {
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         let cmd_size = buf.read_u32();
         let ilocalsym = buf.read_u32();
         let nlocalsym = buf.read_u32();

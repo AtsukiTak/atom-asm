@@ -1,4 +1,4 @@
-use crate::Buffer;
+use crate::ReadBuf;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive as _;
 
@@ -18,7 +18,7 @@ pub struct BuildVersion {
 }
 
 impl BuildVersion {
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         let cmd_size = buf.read_u32();
         let platform = Platform::parse(buf);
         let minos = Version::parse(buf);
@@ -58,7 +58,7 @@ pub enum Platform {
 }
 
 impl Platform {
-    fn parse(buf: &mut Buffer) -> Self {
+    fn parse(buf: &mut ReadBuf) -> Self {
         let platform_n = buf.read_u32();
         Platform::from_u32(platform_n)
             .unwrap_or_else(|| panic!("Invalid platform number {}", platform_n))
@@ -73,7 +73,7 @@ pub struct Version {
 }
 
 impl Version {
-    fn parse(buf: &mut Buffer) -> Self {
+    fn parse(buf: &mut ReadBuf) -> Self {
         let n = buf.read_u32();
         let major = (n >> 16) as u16;
         let minor = ((n >> 8) & 0xFF) as u8;
@@ -93,7 +93,7 @@ pub struct BuildToolVersion {
 }
 
 impl BuildToolVersion {
-    fn parse(buf: &mut Buffer) -> Self {
+    fn parse(buf: &mut ReadBuf) -> Self {
         let tool = Tool::parse(buf);
         let version = buf.read_u32();
 
@@ -109,7 +109,7 @@ pub enum Tool {
 }
 
 impl Tool {
-    fn parse(buf: &mut Buffer) -> Self {
+    fn parse(buf: &mut ReadBuf) -> Self {
         let tool_n = buf.read_u32();
         Tool::from_u32(tool_n).unwrap_or_else(|| panic!("Unsupported tool number {}", tool_n))
     }

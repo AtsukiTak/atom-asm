@@ -1,4 +1,4 @@
-use crate::{Buffer, Header, LoadCommand};
+use crate::{Header, LoadCommand, ReadBuf, WriteBuf};
 
 #[derive(Debug, Clone)]
 pub struct MachO {
@@ -7,7 +7,7 @@ pub struct MachO {
 }
 
 impl MachO {
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         let header = Header::parse(buf);
 
         let mut load_commands = Vec::new();
@@ -22,7 +22,7 @@ impl MachO {
         }
     }
 
-    pub fn write(&self, buf: &mut Buffer) {
+    pub fn write(&self, buf: &mut WriteBuf) {
         self.header.write(buf);
 
         todo!()

@@ -11,7 +11,7 @@ type ReverseEndian = byteorder::BigEndian;
 type ReverseEndian = byteorder::LittleEndian;
 
 #[derive(Clone, Debug)]
-pub struct Buffer {
+pub struct ReadBuf {
     endian: Endian,
     buf: Cursor<ArcVec>,
 }
@@ -31,11 +31,11 @@ macro_rules! endian_read {
     };
 }
 
-impl Buffer {
-    /// バイト列から、新しいBufferを生成する
+impl ReadBuf {
+    /// バイト列から、新しいReadBufを生成する
     /// EndianはNativeEndian
     pub fn new(vec: Vec<u8>) -> Self {
-        Buffer {
+        ReadBuf {
             endian: Endian::Native,
             buf: Cursor::new(ArcVec::new(vec)),
         }
@@ -61,7 +61,7 @@ impl Buffer {
         self.buf.get_ref()
     }
 
-    pub fn skip(&mut self, n: usize) -> &mut Buffer {
+    pub fn skip(&mut self, n: usize) -> &mut ReadBuf {
         self.buf.set_position(self.buf.position() + n as u64);
         self
     }

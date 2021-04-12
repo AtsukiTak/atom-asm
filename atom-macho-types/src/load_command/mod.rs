@@ -8,7 +8,7 @@ use self::dy_sym_tab::DySymTab;
 use self::segment_64::Segment64;
 use self::sym_tab::SymTab;
 
-use crate::Buffer;
+use crate::ReadBuf;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LoadCommand {
@@ -24,7 +24,7 @@ impl LoadCommand {
     const LC_DYSYMTAB: u32 = 0x0B;
     const LC_BUILD_VERSION: u32 = 0x32;
 
-    pub fn parse(buf: &mut Buffer) -> Self {
+    pub fn parse(buf: &mut ReadBuf) -> Self {
         use LoadCommand as LC;
 
         let cmd_type_n = buf.read_u32();
