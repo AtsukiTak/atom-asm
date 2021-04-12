@@ -21,4 +21,10 @@ impl MachO {
             load_commands,
         }
     }
+
+    pub fn write(&self, buf: &mut Buffer) {
+        self.header.write(buf);
+
+        todo!()
+    }
 }

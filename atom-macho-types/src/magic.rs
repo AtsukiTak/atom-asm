@@ -1,4 +1,4 @@
-use crate::Buffer;
+use crate::{Buffer, WriteBuf};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive as _;
 
@@ -35,5 +35,9 @@ impl Magic {
 
         let magic_n = buf.read_u32();
         Magic::from_u32(magic_n).expect("Invalid magic number")
+    }
+
+    pub fn write(&self, buf: &mut WriteBuf) {
+        buf.write_32(*self as u32);
     }
 }

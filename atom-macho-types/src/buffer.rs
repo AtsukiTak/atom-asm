@@ -1,4 +1,4 @@
-use byteorder::{NativeEndian, ReadBytesExt as _};
+use byteorder::{NativeEndian, ReadBytesExt as _, WriteBytesExt as _};
 use std::{
     io::{Cursor, Read},
     sync::Arc,
@@ -66,6 +66,11 @@ impl Buffer {
         self
     }
 
+    /*
+     * ===============
+     * READ functions
+     * ===============
+     */
     pub fn read_u8(&mut self) -> u8 {
         self.buf.read_u8().unwrap()
     }
@@ -125,5 +130,20 @@ impl std::ops::Deref for ArcVec {
 
     fn deref(&self) -> &[u8] {
         self.as_ref()
+    }
+}
+
+/*
+ * ============
+ * WriteBuf
+ * ============
+ */
+pub struct WriteBuf {
+    vec: Vec<u8>,
+}
+
+impl WriteBuf {
+    pub fn write_u32(&mut self, i: u32) {
+        self.vec.write_u32::<NativeEndian>(i).unwrap();
     }
 }

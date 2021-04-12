@@ -4,4 +4,10 @@ mod load_command;
 mod macho;
 mod magic;
 
-pub use self::{buffer::Buffer, header::*, load_command::*, macho::MachO, magic::Magic};
+pub use self::{
+    buffer::{Buffer, WriteBuf},
+    header::*,
+    load_command::*,
+    macho::MachO,
+    magic::Magic,
+};

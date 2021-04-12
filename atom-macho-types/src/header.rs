@@ -1,4 +1,4 @@
-use crate::{Buffer, Magic};
+use crate::{Buffer, Magic, WriteBuf};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive as _;
 use std::fmt;
@@ -44,6 +44,11 @@ impl Header {
             size_of_cmds,
             flags,
         }
+    }
+
+    pub fn write(&self, buf: &mut WriteBuf) {
+        self.magic.write(buf);
+        todo!()
     }
 }
 
