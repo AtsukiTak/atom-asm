@@ -20,6 +20,24 @@ pub struct Segment64 {
 impl Segment64 {
     pub const COMMAND: u32 = 0x19;
 
+    // Byte size of `Segment64` command.
+    // This does not include `Section64` command size.
+    // So this is constant.
+    #[rustfmt::skip]
+    pub const fn cmd_size() -> u32 {
+        4           // cmd
+            + 4     // cmd_size
+            + 16    // seg_name
+            + 8     // vm_addr
+            + 8     // vm_size
+            + 8     // file_off
+            + 8     // file_size
+            + 4     // max_prot
+            + 4     // init_prot
+            + 4     // nsects
+            + 4     // flags
+    }
+
     pub fn parse(buf: &mut ReadBuf) -> Self {
         let start_pos = buf.pos();
 
@@ -83,6 +101,22 @@ pub struct Section64 {
 }
 
 impl Section64 {
+    #[rustfmt::skip]
+    pub const fn cmd_size() -> u32 {
+        16          // sect_name
+            + 16    // seg_name
+            + 8     // addr
+            + 8     // size
+            + 4     // offset
+            + 4     // align
+            + 4     // reloff
+            + 4     // nreloc
+            + 4     // flags
+            + 4     // reserved1
+            + 4     // reserved2
+            + 4     // reserved3
+    }
+
     fn parse(buf: &mut ReadBuf) -> Self {
         let sect_name = buf.read_fixed_size_string(16);
         let seg_name = buf.read_fixed_size_string(16);
