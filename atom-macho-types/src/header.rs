@@ -48,7 +48,16 @@ impl Header {
 
     pub fn write(&self, buf: &mut WriteBuf) {
         self.magic.write(buf);
-        todo!()
+        self.cpu_type.write(buf);
+        self.file_type.write(buf);
+        buf.write_u32(self.n_cmds);
+        buf.write_u32(self.size_of_cmds);
+        self.flags.write(buf);
+
+        if self.magic.is_64bit() {
+            // write "reserved" field
+            buf.write_u32(0);
+        }
     }
 }
 
@@ -99,6 +108,19 @@ impl CpuType {
             panic!("Unsupported cpu_type {}", cpu_type_n);
         }
     }
+
+    pub fn write(&self, buf: &mut WriteBuf) {
+        let (cpu_type_n, cpu_subtype_n) = self.to_i32_i32();
+        buf.write_i32(cpu_type_n);
+        buf.write_i32(cpu_subtype_n);
+    }
+
+    pub fn to_i32_i32(&self) -> (i32, i32) {
+        match self {
+            CpuType::X86(sub) => (CpuType::CPU_TYPE_X86, *sub as i32),
+            CpuType::X86_64(sub) => (CpuType::CPU_TYPE_X86_64, *sub as i32),
+        }
+    }
 }
 
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
@@ -120,6 +142,10 @@ impl FileType {
         let file_type_n = buf.read_u32();
         FileType::from_u32(file_type_n)
             .expect(format!("Unsupported file_type number {}", file_type_n).as_str())
+    }
+
+    pub fn write(&self, buf: &mut WriteBuf) {
+        buf.write_u32(*self as u32);
     }
 }
 
@@ -164,6 +190,16 @@ impl Flags {
         }
 
         Flags { flags }
+    }
+
+    pub fn write(&self, buf: &mut WriteBuf) {
+        let mut flag_n = 0u32;
+
+        for flag in self.flags.iter() {
+            flag_n = flag_n | *flag as u32;
+        }
+
+        buf.write_u32(flag_n);
     }
 }
 

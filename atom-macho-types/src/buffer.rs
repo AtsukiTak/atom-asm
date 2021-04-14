@@ -146,4 +146,8 @@ impl WriteBuf {
     pub fn write_u32(&mut self, i: u32) {
         self.vec.write_u32::<NativeEndian>(i).unwrap();
     }
+
+    pub fn write_i32(&mut self, i: i32) {
+        self.vec.write_i32::<NativeEndian>(i).unwrap();
+    }
 }
