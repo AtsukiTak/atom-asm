@@ -8,7 +8,7 @@ use self::dy_sym_tab::DySymTab;
 use self::segment_64::Segment64;
 use self::sym_tab::SymTab;
 
-use crate::ReadBuf;
+use crate::{ReadBuf, WriteBuf};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LoadCommand {
@@ -33,6 +33,10 @@ impl LoadCommand {
             DySymTab::COMMAND => LC::DySymTab(DySymTab::parse(buf)),
             _ => panic!("Unsupported cmd_type 0x{:X}", cmd_type_n),
         }
+    }
+
+    pub fn write(&self, buf: &WriteBuf) {
+        todo!()
     }
 
     pub fn cmd(&self) -> u32 {

@@ -1,4 +1,4 @@
-use crate::{Header, LoadCommand, ReadBuf, WriteBuf};
+use crate::{header::Header, LoadCommand, ReadBuf, WriteBuf};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MachO {

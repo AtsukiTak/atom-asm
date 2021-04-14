@@ -5,6 +5,7 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Segment64 {
+    /// includes sizeof Section64 structs
     pub cmd_size: u32,
     pub seg_name: String,
     pub vm_addr: u64,
@@ -20,9 +21,9 @@ pub struct Segment64 {
 impl Segment64 {
     pub const COMMAND: u32 = 0x19;
 
-    // Byte size of `Segment64` command.
-    // This does not include `Section64` command size.
-    // So this is constant.
+    /// Byte size of `Segment64` command.
+    /// This does not include `Section64` command size.
+    /// So this is constant.
     #[rustfmt::skip]
     pub const fn cmd_size() -> u32 {
         4           // cmd

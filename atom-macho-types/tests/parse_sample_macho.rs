@@ -1,5 +1,6 @@
 use atom_macho_types::{
-    CpuSubTypeX86_64, CpuType, FileType, Flag, Flags, Header, MachO, Magic, ReadBuf,
+    header::{CpuSubTypeX86_64, CpuType, FileType, Flag, Flags, Header, Magic},
+    MachO, ReadBuf,
 };
 
 #[test]
