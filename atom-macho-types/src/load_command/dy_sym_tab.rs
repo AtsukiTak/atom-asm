@@ -80,7 +80,14 @@ pub struct DySymTab {
 }
 
 impl DySymTab {
+    pub const COMMAND: u32 = 0xB;
+
     pub fn parse(buf: &mut ReadBuf) -> Self {
+        let cmd_type = buf.read_u32();
+        if cmd_type != Self::COMMAND {
+            panic!("Invalid cmd number");
+        }
+
         let cmd_size = buf.read_u32();
         let ilocalsym = buf.read_u32();
         let nlocalsym = buf.read_u32();

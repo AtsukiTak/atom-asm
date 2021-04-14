@@ -19,20 +19,18 @@ pub enum LoadCommand {
 }
 
 impl LoadCommand {
-    const LC_SEGMENT_64: u32 = 0x19;
-    const LC_SYMTAB: u32 = 0x02;
-    const LC_DYSYMTAB: u32 = 0x0B;
-    const LC_BUILD_VERSION: u32 = 0x32;
-
     pub fn parse(buf: &mut ReadBuf) -> Self {
         use LoadCommand as LC;
 
+        // peek read
         let cmd_type_n = buf.read_u32();
+        buf.set_pos(buf.pos() - 4);
+
         match cmd_type_n {
-            Self::LC_SEGMENT_64 => LC::Segment64(Segment64::parse(buf)),
-            Self::LC_SYMTAB => LC::SymTab(SymTab::parse(buf)),
-            Self::LC_BUILD_VERSION => LC::BuildVersion(BuildVersion::parse(buf)),
-            Self::LC_DYSYMTAB => LC::DySymTab(DySymTab::parse(buf)),
+            Segment64::COMMAND => LC::Segment64(Segment64::parse(buf)),
+            SymTab::COMMAND => LC::SymTab(SymTab::parse(buf)),
+            BuildVersion::COMMAND => LC::BuildVersion(BuildVersion::parse(buf)),
+            DySymTab::COMMAND => LC::DySymTab(DySymTab::parse(buf)),
             _ => panic!("Unsupported cmd_type 0x{:X}", cmd_type_n),
         }
     }
@@ -41,10 +39,10 @@ impl LoadCommand {
         use LoadCommand as LC;
 
         match self {
-            LC::Segment64(_) => Self::LC_SEGMENT_64,
-            LC::SymTab(_) => Self::LC_SYMTAB,
-            LC::DySymTab(_) => Self::LC_DYSYMTAB,
-            LC::BuildVersion(_) => Self::LC_BUILD_VERSION,
+            LC::Segment64(_) => Segment64::COMMAND,
+            LC::SymTab(_) => SymTab::COMMAND,
+            LC::DySymTab(_) => DySymTab::COMMAND,
+            LC::BuildVersion(_) => BuildVersion::COMMAND,
         }
     }
 

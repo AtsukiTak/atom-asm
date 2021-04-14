@@ -18,9 +18,15 @@ pub struct Segment64 {
 }
 
 impl Segment64 {
+    pub const COMMAND: u32 = 0x19;
+
     pub fn parse(buf: &mut ReadBuf) -> Self {
-        // cmd_typeの分、start_posは今の位置よりも前
-        let start_pos = buf.pos() - 4;
+        let start_pos = buf.pos();
+
+        let cmd_type = buf.read_u32();
+        if cmd_type != Self::COMMAND {
+            panic!("Invalid cmd number");
+        }
 
         let cmd_size = buf.read_u32();
         let seg_name = buf.read_fixed_size_string(16);

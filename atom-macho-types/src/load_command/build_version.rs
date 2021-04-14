@@ -18,7 +18,14 @@ pub struct BuildVersion {
 }
 
 impl BuildVersion {
+    pub const COMMAND: u32 = 0x32;
+
     pub fn parse(buf: &mut ReadBuf) -> Self {
+        let cmd_type = buf.read_u32();
+        if cmd_type != Self::COMMAND {
+            panic!("Invalid cmd number");
+        }
+
         let cmd_size = buf.read_u32();
         let platform = Platform::parse(buf);
         let minos = Version::parse(buf);

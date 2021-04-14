@@ -16,7 +16,14 @@ pub struct SymTab {
 }
 
 impl SymTab {
+    pub const COMMAND: u32 = 0x2;
+
     pub fn parse(buf: &mut ReadBuf) -> Self {
+        let cmd_type = buf.read_u32();
+        if cmd_type != Self::COMMAND {
+            panic!("Invalid cmd number");
+        }
+
         let cmd_size = buf.read_u32();
         let sym_off = buf.read_u32();
         let n_syms = buf.read_u32();
