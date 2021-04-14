@@ -176,10 +176,18 @@ pub struct Flags {
 }
 
 impl Flags {
+    pub fn new() -> Flags {
+        Flags { flags: Vec::new() }
+    }
+
+    pub fn push(&mut self, flag: Flag) {
+        self.flags.push(flag);
+    }
+
     pub fn parse(buf: &mut ReadBuf) -> Self {
         let flags_n = buf.read_u32();
 
-        let mut flags = Vec::new();
+        let mut flags = Flags::new();
         for i in 0..=31 {
             let flag_n = flags_n & (1 << i);
             if flag_n != 0 {
@@ -189,7 +197,7 @@ impl Flags {
             }
         }
 
-        Flags { flags }
+        flags
     }
 
     pub fn write(&self, buf: &mut WriteBuf) {

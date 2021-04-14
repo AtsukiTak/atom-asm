@@ -6,7 +6,7 @@ mod magic;
 
 pub use self::{
     buffer::{ReadBuf, WriteBuf},
-    header::*,
+    header::{CpuSubTypeX86, CpuSubTypeX86_64, CpuType, FileType, Flag, Flags, Header},
     load_command::*,
     macho::MachO,
     magic::Magic,

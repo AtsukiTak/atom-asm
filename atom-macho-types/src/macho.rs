@@ -1,6 +1,6 @@
 use crate::{Header, LoadCommand, ReadBuf, WriteBuf};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MachO {
     pub header: Header,
     pub load_commands: Vec<LoadCommand>,
@@ -24,6 +24,9 @@ impl MachO {
 
     pub fn write(&self, buf: &mut WriteBuf) {
         self.header.write(buf);
+        for cmd in self.load_commands.iter() {
+            cmd.write(buf);
+        }
 
         todo!()
     }
