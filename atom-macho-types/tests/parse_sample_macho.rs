@@ -10,6 +10,8 @@ fn parse_and_check_sample_macho() {
 
     let macho = MachO::parse(&mut buf);
 
+    dbg!(&macho);
+
     assert_eq!(macho.header, expected_header());
 }
 

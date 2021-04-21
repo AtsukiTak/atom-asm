@@ -1,6 +1,6 @@
 use crate::{ReadBuf, WriteBuf};
 use num_derive::FromPrimitive;
-use num_traits::FromPrimitive as _;
+use num_traits::FromPrimitive;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -87,6 +87,14 @@ pub enum Magic {
 impl Magic {
     pub fn is_64bit(&self) -> bool {
         matches!(self, Magic::Magic64 | Magic::Cigam64)
+    }
+
+    pub fn from_u32(n: u32) -> Option<Self> {
+        FromPrimitive::from_u32(n)
+    }
+
+    pub fn to_u32(&self) -> u32 {
+        *self as u32
     }
 
     pub fn parse(buf: &mut ReadBuf) -> Magic {

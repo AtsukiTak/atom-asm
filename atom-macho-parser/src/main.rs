@@ -1,4 +1,7 @@
-use atom_macho_types::{Buffer, MachO};
+mod buffer;
+mod macho;
+
+use crate::buffer::Buffer;
 use std::{fs::File, io::Read as _};
 
 fn main() {
@@ -6,16 +9,12 @@ fn main() {
     let mut vec = Vec::new();
     file.read_to_end(&mut vec).unwrap();
 
-    let mut buf = Buffer::new(vec);
+    let buf = Buffer::new(vec);
 
-    let macho = MachO::parse(&mut buf);
-    dbg!(macho);
-
-    // 残り
-    buf.get_full_slice()
-        .iter()
-        .skip(buf.pos())
-        .for_each(|byte| print!("{:X} ", byte));
+    // try parse macho
+    if let Some(macho) = macho::parse_macho(&mut buf.clone()) {
+        dbg!(macho);
+    }
 }
 
 fn get_file() -> File {
