@@ -1,64 +1,16 @@
-use crate::{ReadBuf, WriteBuf};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Header {
+pub struct Header64 {
     pub magic: Magic,
     pub cpu_type: CpuType,
     pub file_type: FileType,
     pub n_cmds: u32,
     pub size_of_cmds: u32,
     pub flags: Flags,
-}
-
-impl Header {
-    pub fn parse(buf: &mut ReadBuf) -> Self {
-        let magic = Magic::parse(buf);
-
-        // reverse byte endian if necessary
-        match magic {
-            Magic::Cigam64 | Magic::Cigam | Magic::FatCigam => {
-                buf.set_reverse_endian();
-            }
-            _ => {}
-        }
-
-        let cpu_type = CpuType::parse(buf);
-        let file_type = FileType::parse(buf);
-        let n_cmds = buf.read_u32();
-        let size_of_cmds = buf.read_u32();
-        let flags = Flags::parse(buf);
-
-        if magic.is_64bit() {
-            // read "reserved" field
-            let _ = buf.read_u32();
-        }
-
-        Header {
-            magic,
-            cpu_type,
-            file_type,
-            n_cmds,
-            size_of_cmds,
-            flags,
-        }
-    }
-
-    pub fn write(&self, buf: &mut WriteBuf) {
-        self.magic.write(buf);
-        self.cpu_type.write(buf);
-        self.file_type.write(buf);
-        buf.write_u32(self.n_cmds);
-        buf.write_u32(self.size_of_cmds);
-        self.flags.write(buf);
-
-        if self.magic.is_64bit() {
-            // write "reserved" field
-            buf.write_u32(0);
-        }
-    }
+    pub reserved: u32,
 }
 
 /// An integer containing a value identifying this file as a Mach-O file.
@@ -85,27 +37,12 @@ pub enum Magic {
 }
 
 impl Magic {
-    pub fn is_64bit(&self) -> bool {
-        matches!(self, Magic::Magic64 | Magic::Cigam64)
-    }
-
     pub fn from_u32(n: u32) -> Option<Self> {
         FromPrimitive::from_u32(n)
     }
 
     pub fn to_u32(&self) -> u32 {
         *self as u32
-    }
-
-    pub fn parse(buf: &mut ReadBuf) -> Magic {
-        assert!(buf.is_native_endian());
-
-        let magic_n = buf.read_u32();
-        Magic::from_u32(magic_n).expect("Invalid magic number")
-    }
-
-    pub fn write(&self, buf: &mut WriteBuf) {
-        buf.write_u32(*self as u32);
     }
 }
 
@@ -130,37 +67,18 @@ impl CpuType {
     const CPU_TYPE_X86: i32 = 0x7;
     const CPU_TYPE_X86_64: i32 = Self::CPU_TYPE_X86 | Self::CPU_ARCH_ABI64;
 
-    pub fn parse(buf: &mut ReadBuf) -> Self {
-        let cpu_type_n = buf.read_i32();
-        let cpu_subtype_n = buf.read_i32();
-        Self::from_i32_i32(cpu_type_n, cpu_subtype_n)
-    }
-
-    pub fn from_i32_i32(cpu_type_n: i32, cpu_subtype_n: i32) -> Self {
+    pub fn from_i32_i32(cpu_type_n: i32, cpu_subtype_n: i32) -> Option<Self> {
         // x86
         if cpu_type_n == Self::CPU_TYPE_X86 {
-            let cpu_subtype = CpuSubTypeX86::from_i32(cpu_subtype_n).unwrap_or_else(|| {
-                panic!("Unsupported cpu_subtype {} of x86 cpu_type", cpu_subtype_n)
-            });
-            CpuType::X86(cpu_subtype)
+            let cpu_subtype = CpuSubTypeX86::from_i32(cpu_subtype_n)?;
+            Some(CpuType::X86(cpu_subtype))
         // x86_64
         } else if cpu_type_n == Self::CPU_TYPE_X86_64 {
-            let cpu_subtype = CpuSubTypeX86_64::from_i32(cpu_subtype_n).unwrap_or_else(|| {
-                panic!(
-                    "Unsupported cpu_subtype {} of x86_64 cpu_type",
-                    cpu_subtype_n
-                )
-            });
-            CpuType::X86_64(cpu_subtype)
+            let cpu_subtype = CpuSubTypeX86_64::from_i32(cpu_subtype_n)?;
+            Some(CpuType::X86_64(cpu_subtype))
         } else {
-            panic!("Unsupported cpu_type {}", cpu_type_n);
+            None
         }
-    }
-
-    pub fn write(&self, buf: &mut WriteBuf) {
-        let (cpu_type_n, cpu_subtype_n) = self.to_i32_i32();
-        buf.write_i32(cpu_type_n);
-        buf.write_i32(cpu_subtype_n);
     }
 
     pub fn to_i32_i32(&self) -> (i32, i32) {
@@ -186,14 +104,12 @@ pub enum FileType {
 }
 
 impl FileType {
-    pub fn parse(buf: &mut ReadBuf) -> Self {
-        let file_type_n = buf.read_u32();
-        FileType::from_u32(file_type_n)
-            .expect(format!("Unsupported file_type number {}", file_type_n).as_str())
+    pub fn from_u32(n: u32) -> Option<Self> {
+        FromPrimitive::from_u32(n)
     }
 
-    pub fn write(&self, buf: &mut WriteBuf) {
-        buf.write_u32(*self as u32);
+    pub fn to_u32(&self) -> u32 {
+        *self as u32
     }
 }
 
@@ -232,30 +148,27 @@ impl Flags {
         self.flags.push(flag);
     }
 
-    pub fn parse(buf: &mut ReadBuf) -> Self {
-        let flags_n = buf.read_u32();
-
+    pub fn from_u32(flags_n: u32) -> Option<Self> {
         let mut flags = Flags::new();
         for i in 0..=31 {
             let flag_n = flags_n & (1 << i);
             if flag_n != 0 {
-                let flag = Flag::from_u32(flag_n)
-                    .expect(format!("Unsupported flag : {:#X}", flag_n).as_str());
+                let flag = Flag::from_u32(flag_n)?;
                 flags.push(flag);
             }
         }
 
-        flags
+        Some(flags)
     }
 
-    pub fn write(&self, buf: &mut WriteBuf) {
+    pub fn to_u32(&self) -> u32 {
         let mut flag_n = 0u32;
 
         for flag in self.flags.iter() {
             flag_n = flag_n | *flag as u32;
         }
 
-        buf.write_u32(flag_n);
+        flag_n
     }
 }
 
