@@ -1,6 +1,6 @@
 mod buffer;
 pub mod header;
-mod load_command;
+pub mod load_command;
 mod macho;
 
 pub use self::{

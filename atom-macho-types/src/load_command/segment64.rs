@@ -1,4 +1,3 @@
-use crate::ReadBuf;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use std::fmt;
@@ -19,7 +18,7 @@ pub struct Segment64 {
 }
 
 impl Segment64 {
-    pub const COMMAND: u32 = 0x19;
+    pub const CMD_TYPE: u32 = 0x19;
 
     /// Byte size of `Segment64` command.
     /// This does not include `Section64` command size.
@@ -38,67 +37,22 @@ impl Segment64 {
             + 4     // nsects
             + 4     // flags
     }
-
-    pub fn parse(buf: &mut ReadBuf) -> Self {
-        let start_pos = buf.pos();
-
-        let cmd_type = buf.read_u32();
-        if cmd_type != Self::COMMAND {
-            panic!("Invalid cmd number");
-        }
-
-        let cmd_size = buf.read_u32();
-        let seg_name = buf.read_fixed_size_string(16);
-        let vm_addr = buf.read_u64();
-        let vm_size = buf.read_u64();
-        let file_off = buf.read_u64();
-        let file_size = buf.read_u64();
-        let max_prot = buf.read_i32();
-        let init_prot = buf.read_i32();
-        let nsects = buf.read_u32();
-        let flags = buf.read_u32();
-
-        let mut sections = Vec::with_capacity(nsects as usize);
-        for _ in 0..nsects {
-            sections.push(Section64::parse(buf));
-        }
-
-        let command = Segment64 {
-            cmd_size,
-            seg_name,
-            vm_addr,
-            vm_size,
-            file_off,
-            file_size,
-            max_prot,
-            init_prot,
-            flags,
-            sections,
-        };
-
-        // バイト境界は8に揃えられているので
-        // その分をskipする
-        let parsed = buf.pos() - start_pos;
-        let alignment = (8 - (parsed % 8)) % 8;
-        buf.skip(alignment);
-
-        command
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Section64 {
-    sect_name: String,
-    seg_name: String,
-    addr: u64,
-    size: u64,
-    offset: u32,
-    align: u32,
-    reloff: u32,
-    nreloc: u32,
-    sect_type: SectionType,
-    sect_attrs: SectionAttrs,
-    data: Data,
+    pub sect_name: String,
+    pub seg_name: String,
+    pub addr: u64,
+    pub size: u64,
+    pub offset: u32,
+    pub align: u32,
+    pub reloff: u32,
+    pub nreloc: u32,
+    pub flags: (SectionAttrs, SectionType),
+    pub reserved_1: u32,
+    pub reserved_2: u32,
+    pub reserved_3: u32,
 }
 
 impl Section64 {
@@ -117,43 +71,6 @@ impl Section64 {
             + 4     // reserved2
             + 4     // reserved3
     }
-
-    fn parse(buf: &mut ReadBuf) -> Self {
-        let sect_name = buf.read_fixed_size_string(16);
-        let seg_name = buf.read_fixed_size_string(16);
-        let addr = buf.read_u64();
-        let size = buf.read_u64();
-        let offset = buf.read_u32();
-        let align = buf.read_u32();
-        let reloff = buf.read_u32();
-        let nreloc = buf.read_u32();
-        let flags = buf.read_u32();
-
-        let sect_type = SectionType::from_u32(flags & 0x000000ff);
-        let sect_attrs = SectionAttrs::from_u32(flags & 0xffffff00);
-
-        // skip "reserved[1,2,3]" fields
-        buf.skip(12);
-
-        let data_start = offset as usize;
-        let data_end = data_start + size as usize;
-        let data_slice = &buf.get_full_slice()[data_start..data_end];
-        let data = Data(data_slice.to_vec());
-
-        Section64 {
-            sect_name,
-            seg_name,
-            addr,
-            size,
-            offset,
-            align,
-            reloff,
-            nreloc,
-            sect_type,
-            sect_attrs,
-            data,
-        }
-    }
 }
 
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
@@ -168,7 +85,7 @@ pub enum SectionType {
 }
 
 impl SectionType {
-    fn from_u32(n: u32) -> Self {
+    pub fn from_u32(n: u32) -> Self {
         FromPrimitive::from_u32(n).unwrap_or_else(|| panic!("Unsupported section type 0x{:X}", n))
     }
 }
@@ -195,7 +112,7 @@ pub enum SectionAttr {
 }
 
 impl SectionAttr {
-    fn from_u32(n: u32) -> Self {
+    pub fn from_u32(n: u32) -> Self {
         FromPrimitive::from_u32(n)
             .unwrap_or_else(|| panic!("Unsupported section attribute 0x{:X}", n))
     }
@@ -207,7 +124,7 @@ pub struct SectionAttrs {
 }
 
 impl SectionAttrs {
-    fn from_u32(flags: u32) -> Self {
+    pub fn from_u32(flags: u32) -> Self {
         let mut attrs = Vec::new();
         for i in 8..=31 {
             let attr_n = flags & (1 << i);
@@ -222,14 +139,5 @@ impl SectionAttrs {
 impl fmt::Debug for SectionAttrs {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_set().entries(self.attrs.iter()).finish()
-    }
-}
-
-#[derive(Clone, PartialEq, Eq)]
-pub struct Data(Vec<u8>);
-
-impl fmt::Debug for Data {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        fmt.write_fmt(format_args!("{:02X?}", self.0))
     }
 }
