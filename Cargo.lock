@@ -19,25 +19,25 @@ checksum = "ee2a4ec343196209d6594e19543ae87a39f96d5534d7174822a3ad825dd6ed7e"
 name = "atom-asm"
 version = "0.1.0"
 dependencies = [
- "atom-macho-types",
+ "atom-macho",
 ]
 
 [[package]]
-name = "atom-macho-parser"
+name = "atom-macho"
 version = "0.1.0"
 dependencies = [
- "atom-macho-types",
  "byteorder",
- "mach_object",
  "num-derive",
  "num-traits",
 ]
 
 [[package]]
-name = "atom-macho-types"
+name = "atom-objpars"
 version = "0.1.0"
 dependencies = [
+ "atom-macho",
  "byteorder",
+ "mach_object",
  "num-derive",
  "num-traits",
 ]

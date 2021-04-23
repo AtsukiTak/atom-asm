@@ -4,7 +4,7 @@ mod nlist;
 
 use self::load_command::parse_load_command;
 use crate::buffer::Buffer;
-use atom_macho_types::MachO;
+use atom_macho::MachO;
 
 pub fn parse_macho(buf: &mut Buffer) -> Option<MachO> {
     let header = header::parse_macho_header(buf)?;

@@ -1,5 +1,5 @@
 [package]
-name = "atom-macho-types"
+name = "atom-objpars"
 version = "0.1.0"
 authors = ["AtsukiTak <takatomgoo@gmail.com>"]
 edition = "2018"
@@ -10,3 +10,9 @@ edition = "2018"
 byteorder = "1.4.2"
 num-traits = "0.2.14"
 num-derive = "0.3.3"
+
+[dependencies.atom-macho]
+path = "../atom-macho"
+
+[dev-dependencies]
+mach_object = "0.1.14"

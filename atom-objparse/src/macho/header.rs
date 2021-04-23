@@ -1,5 +1,5 @@
 use crate::buffer::Buffer;
-use atom_macho_types::header::{CpuType, FileType, Flags, Header64, Magic};
+use atom_macho::header::{CpuType, FileType, Flags, Header64, Magic};
 
 pub fn parse_macho_header(buf: &mut Buffer) -> Option<Header64> {
     let magic_n = buf.read_u32();

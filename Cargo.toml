@@ -2,6 +2,6 @@
 members = [
   "atom-asm",
   "atom-x86-64",
-  "atom-macho-types",
-  "atom-macho-parser"
+  "atom-macho",
+  "atom-objparse"
 ]

@@ -1,5 +1,5 @@
 use crate::buffer::Buffer;
-use atom_macho_types::load_command::DySymTab;
+use atom_macho::load_command::DySymTab;
 
 pub fn parse_dy_sym_tab(buf: &mut Buffer) -> DySymTab {
     let cmd_type = buf.read_u32();

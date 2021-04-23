@@ -1,5 +1,5 @@
 use crate::buffer::Buffer;
-use atom_macho_types::load_command::build_version::{
+use atom_macho::load_command::build_version::{
     BuildToolVersion, BuildVersion, Platform, Tool, Version,
 };
 

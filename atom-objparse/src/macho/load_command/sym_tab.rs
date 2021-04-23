@@ -1,5 +1,5 @@
 use crate::buffer::Buffer;
-use atom_macho_types::load_command::SymTab;
+use atom_macho::load_command::SymTab;
 
 pub fn parse_sym_tab(buf: &mut Buffer) -> SymTab {
     let cmd_type = buf.read_u32();

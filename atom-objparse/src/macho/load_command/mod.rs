@@ -8,7 +8,7 @@ use self::{
     sym_tab::parse_sym_tab,
 };
 use crate::buffer::Buffer;
-use atom_macho_types::load_command::{BuildVersion, DySymTab, LoadCommand, Segment64, SymTab};
+use atom_macho::load_command::{BuildVersion, DySymTab, LoadCommand, Segment64, SymTab};
 
 pub fn parse_load_command(buf: &mut Buffer) -> LoadCommand {
     use LoadCommand as LC;

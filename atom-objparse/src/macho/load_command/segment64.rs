@@ -1,5 +1,5 @@
 use crate::buffer::Buffer;
-use atom_macho_types::load_command::segment64::{Section64, SectionAttrs, SectionType, Segment64};
+use atom_macho::load_command::segment64::{Section64, SectionAttrs, SectionType, Segment64};
 
 pub fn parse_segment64(buf: &mut Buffer) -> Segment64 {
     let start_pos = buf.pos();
