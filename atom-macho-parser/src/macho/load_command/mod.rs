@@ -1,5 +1,12 @@
+mod build_version;
+mod dy_sym_tab;
 mod segment64;
+mod sym_tab;
 
+use self::{
+    build_version::parse_build_version, dy_sym_tab::parse_dy_sym_tab, segment64::parse_segment64,
+    sym_tab::parse_sym_tab,
+};
 use crate::buffer::Buffer;
 use atom_macho_types::load_command::{BuildVersion, DySymTab, LoadCommand, Segment64, SymTab};
 
@@ -7,14 +14,13 @@ pub fn parse_load_command(buf: &mut Buffer) -> LoadCommand {
     use LoadCommand as LC;
 
     // peek read
-    let cmd_type_n = buf.read_u32();
-    buf.set_pos(buf.pos() - 4);
+    let cmd_type_n = buf.clone().read_u32();
 
     match cmd_type_n {
-        Segment64::CMD_TYPE => LC::Segment64(segment64::parse_segment64(buf)),
-        // SymTab::COMMAND => LC::SymTab(SymTab::parse(buf)),
-        // BuildVersion::COMMAND => LC::BuildVersion(BuildVersion::parse(buf)),
-        // DySymTab::COMMAND => LC::DySymTab(DySymTab::parse(buf)),
+        Segment64::CMD_TYPE => LC::Segment64(parse_segment64(buf)),
+        SymTab::CMD_TYPE => LC::SymTab(parse_sym_tab(buf)),
+        BuildVersion::CMD_TYPE => LC::BuildVersion(parse_build_version(buf)),
+        DySymTab::CMD_TYPE => LC::DySymTab(parse_dy_sym_tab(buf)),
         _ => panic!("Unsupported cmd_type 0x{:X}", cmd_type_n),
     }
 }

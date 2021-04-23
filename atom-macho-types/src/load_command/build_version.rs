@@ -1,6 +1,5 @@
-use crate::ReadBuf;
 use num_derive::FromPrimitive;
-use num_traits::FromPrimitive as _;
+use num_traits::FromPrimitive;
 
 /// The build_version_command contains the min OS version on which this
 /// binary was built to run for its platform.  The list of known platforms and
@@ -18,36 +17,7 @@ pub struct BuildVersion {
 }
 
 impl BuildVersion {
-    pub const COMMAND: u32 = 0x32;
-
-    pub fn parse(buf: &mut ReadBuf) -> Self {
-        let cmd_type = buf.read_u32();
-        if cmd_type != Self::COMMAND {
-            panic!("Invalid cmd number");
-        }
-
-        let cmd_size = buf.read_u32();
-        let platform = Platform::parse(buf);
-        let minos = Version::parse(buf);
-        let sdk = Version::parse(buf);
-        let ntools = buf.read_u32();
-
-        let mut tools = Vec::with_capacity(ntools as usize);
-        for _ in 0..ntools {
-            tools.push(BuildToolVersion::parse(buf));
-        }
-
-        // 必ず8バイト境界にそろうためアライメントは不要
-
-        BuildVersion {
-            cmd_size,
-            platform,
-            minos,
-            sdk,
-            ntools,
-            tools,
-        }
-    }
+    pub const CMD_TYPE: u32 = 0x32;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
@@ -65,23 +35,20 @@ pub enum Platform {
 }
 
 impl Platform {
-    fn parse(buf: &mut ReadBuf) -> Self {
-        let platform_n = buf.read_u32();
-        Platform::from_u32(platform_n)
-            .unwrap_or_else(|| panic!("Invalid platform number {}", platform_n))
+    pub fn from_u32(n: u32) -> Self {
+        FromPrimitive::from_u32(n).unwrap_or_else(|| panic!("Invalid platform number {}", n))
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Version {
-    major: u16,
-    minor: u8,
-    release: u8,
+    pub major: u16,
+    pub minor: u8,
+    pub release: u8,
 }
 
 impl Version {
-    fn parse(buf: &mut ReadBuf) -> Self {
-        let n = buf.read_u32();
+    pub fn from_u32(n: u32) -> Self {
         let major = (n >> 16) as u16;
         let minor = ((n >> 8) & 0xFF) as u8;
         let release = (n & 0xFF) as u8;
@@ -95,17 +62,8 @@ impl Version {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BuildToolVersion {
-    tool: Tool,
-    version: u32,
-}
-
-impl BuildToolVersion {
-    fn parse(buf: &mut ReadBuf) -> Self {
-        let tool = Tool::parse(buf);
-        let version = buf.read_u32();
-
-        BuildToolVersion { tool, version }
-    }
+    pub tool: Tool,
+    pub version: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
@@ -116,8 +74,7 @@ pub enum Tool {
 }
 
 impl Tool {
-    fn parse(buf: &mut ReadBuf) -> Self {
-        let tool_n = buf.read_u32();
-        Tool::from_u32(tool_n).unwrap_or_else(|| panic!("Unsupported tool number {}", tool_n))
+    pub fn from_u32(n: u32) -> Self {
+        FromPrimitive::from_u32(n).unwrap_or_else(|| panic!("Unsupported tool number {}", n))
     }
 }

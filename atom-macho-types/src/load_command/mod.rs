@@ -22,9 +22,9 @@ impl LoadCommand {
 
         match self {
             LC::Segment64(_) => Segment64::CMD_TYPE,
-            LC::SymTab(_) => SymTab::COMMAND,
-            LC::DySymTab(_) => DySymTab::COMMAND,
-            LC::BuildVersion(_) => BuildVersion::COMMAND,
+            LC::SymTab(_) => SymTab::CMD_TYPE,
+            LC::DySymTab(_) => DySymTab::CMD_TYPE,
+            LC::BuildVersion(_) => BuildVersion::CMD_TYPE,
         }
     }
 
