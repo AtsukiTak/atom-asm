@@ -1,7 +1,7 @@
-use crate::buffer::Buffer;
+use crate::reader::Reader;
 use atom_macho::nlist::{NList64, NType};
 
-pub fn parse_nlist(buf: &mut Buffer) -> NList64 {
+pub fn parse_nlist(buf: &mut Reader) -> NList64 {
     let n_strx = buf.read_u32();
     let n_type_n = buf.read_u8();
     let n_stab = n_type_n & 0b1110_0000;

@@ -1,8 +1,31 @@
-use byteorder::{NativeEndian, ReadBytesExt as _, WriteBytesExt as _};
+use byteorder::{NativeEndian, ReadBytesExt as _};
 use std::{
     io::{Cursor, Read},
     sync::Arc,
 };
+
+#[derive(Clone, Debug)]
+pub struct Bytes(Arc<Vec<u8>>);
+
+impl Bytes {
+    pub fn new(vec: Vec<u8>) -> Self {
+        Bytes(Arc::new(vec))
+    }
+}
+
+impl AsRef<[u8]> for Bytes {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref().as_ref()
+    }
+}
+
+impl std::ops::Deref for Bytes {
+    type Target = [u8];
+
+    fn deref(&self) -> &[u8] {
+        self.as_ref()
+    }
+}
 
 #[cfg(target_endian = "little")]
 type ReverseEndian = byteorder::BigEndian;
@@ -11,9 +34,9 @@ type ReverseEndian = byteorder::BigEndian;
 type ReverseEndian = byteorder::LittleEndian;
 
 #[derive(Clone, Debug)]
-pub struct Buffer {
+pub struct Reader {
     endian: Endian,
-    buf: Cursor<ArcVec>,
+    buf: Cursor<Bytes>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -31,13 +54,13 @@ macro_rules! endian_read {
     };
 }
 
-impl Buffer {
-    /// バイト列から、新しいBufferを生成する
+impl Reader {
+    /// バイト列から、新しいReaderを生成する
     /// EndianはNativeEndian
-    pub fn new(vec: Vec<u8>) -> Self {
-        Buffer {
+    pub fn new(bytes: Bytes) -> Self {
+        Reader {
             endian: Endian::Native,
-            buf: Cursor::new(ArcVec::new(vec)),
+            buf: Cursor::new(bytes),
         }
     }
 
@@ -61,7 +84,7 @@ impl Buffer {
         self.buf.get_ref()
     }
 
-    pub fn skip(&mut self, n: usize) -> &mut Buffer {
+    pub fn skip(&mut self, n: usize) -> &mut Reader {
         self.buf.set_position(self.buf.position() + n as u64);
         self
     }
@@ -107,28 +130,5 @@ impl Buffer {
             .take_while(|byte| *byte != 0)
             .map(char::from)
             .collect::<String>()
-    }
-}
-
-#[derive(Clone, Debug)]
-struct ArcVec(Arc<Vec<u8>>);
-
-impl ArcVec {
-    fn new(vec: Vec<u8>) -> Self {
-        ArcVec(Arc::new(vec))
-    }
-}
-
-impl AsRef<[u8]> for ArcVec {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_ref().as_ref()
-    }
-}
-
-impl std::ops::Deref for ArcVec {
-    type Target = [u8];
-
-    fn deref(&self) -> &[u8] {
-        self.as_ref()
     }
 }

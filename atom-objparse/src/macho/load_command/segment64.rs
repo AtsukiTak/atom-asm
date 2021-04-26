@@ -1,7 +1,7 @@
-use crate::buffer::Buffer;
+use crate::reader::Reader;
 use atom_macho::load_command::segment64::{Section64, SectionAttrs, SectionType, Segment64};
 
-pub fn parse_segment64(buf: &mut Buffer) -> Segment64 {
+pub fn parse_segment64(buf: &mut Reader) -> Segment64 {
     let start_pos = buf.pos();
 
     let cmd_type = buf.read_u32();
@@ -47,7 +47,7 @@ pub fn parse_segment64(buf: &mut Buffer) -> Segment64 {
     command
 }
 
-fn parse_section64(buf: &mut Buffer) -> Section64 {
+fn parse_section64(buf: &mut Reader) -> Section64 {
     let sect_name = buf.read_fixed_size_string(16);
     let seg_name = buf.read_fixed_size_string(16);
     let addr = buf.read_u64();

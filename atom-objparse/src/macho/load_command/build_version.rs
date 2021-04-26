@@ -1,9 +1,9 @@
-use crate::buffer::Buffer;
+use crate::reader::Reader;
 use atom_macho::load_command::build_version::{
     BuildToolVersion, BuildVersion, Platform, Tool, Version,
 };
 
-pub fn parse_build_version(buf: &mut Buffer) -> BuildVersion {
+pub fn parse_build_version(buf: &mut Reader) -> BuildVersion {
     let cmd_type = buf.read_u32();
     if cmd_type != BuildVersion::CMD_TYPE {
         panic!("Invalid cmd number");

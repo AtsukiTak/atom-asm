@@ -1,7 +1,7 @@
-use crate::buffer::Buffer;
+use crate::reader::Reader;
 use atom_macho::load_command::SymTab;
 
-pub fn parse_sym_tab(buf: &mut Buffer) -> SymTab {
+pub fn parse_sym_tab(buf: &mut Reader) -> SymTab {
     let cmd_type = buf.read_u32();
     if cmd_type != SymTab::CMD_TYPE {
         panic!("Invalid cmd number");

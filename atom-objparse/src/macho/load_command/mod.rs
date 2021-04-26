@@ -7,10 +7,10 @@ use self::{
     build_version::parse_build_version, dy_sym_tab::parse_dy_sym_tab, segment64::parse_segment64,
     sym_tab::parse_sym_tab,
 };
-use crate::buffer::Buffer;
+use crate::reader::Reader;
 use atom_macho::load_command::{BuildVersion, DySymTab, LoadCommand, Segment64, SymTab};
 
-pub fn parse_load_command(buf: &mut Buffer) -> LoadCommand {
+pub fn parse_load_command(buf: &mut Reader) -> LoadCommand {
     use LoadCommand as LC;
 
     // peek read

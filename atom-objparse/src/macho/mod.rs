@@ -3,10 +3,10 @@ mod load_command;
 mod nlist;
 
 use self::load_command::parse_load_command;
-use crate::buffer::Buffer;
+use crate::reader::Reader;
 use atom_macho::MachO;
 
-pub fn parse_macho(buf: &mut Buffer) -> Option<MachO> {
+pub fn parse_macho(buf: &mut Reader) -> Option<MachO> {
     let header = header::parse_macho_header(buf)?;
 
     let mut load_commands = Vec::with_capacity(header.n_cmds as usize);

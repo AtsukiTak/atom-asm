@@ -1,7 +1,7 @@
-mod buffer;
 mod macho;
+mod reader;
 
-use crate::buffer::Buffer;
+use crate::reader::{Bytes, Reader};
 use std::{fs::File, io::Read as _};
 
 fn main() {
@@ -9,7 +9,8 @@ fn main() {
     let mut vec = Vec::new();
     file.read_to_end(&mut vec).unwrap();
 
-    let buf = Buffer::new(vec);
+    let bytes = Bytes::new(vec);
+    let buf = Reader::new(bytes);
 
     // try parse macho
     if let Some(macho) = macho::parse_macho(&mut buf.clone()) {
