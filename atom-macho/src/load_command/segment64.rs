@@ -108,7 +108,12 @@ pub enum SectionAttr {
     /// from sections with this attribute into its output file.  These sections
     /// generally contain DWARF debugging info.
     Debug = 0x02000000,
+    /// section contains some machine instructions.
     SomeInstructions = 0x00000400,
+    /// section has external relocation entries.
+    ExtReloc = 0x00000200,
+    /// section has local relocation entries.
+    LocReloc = 0x00000100,
 }
 
 impl SectionAttr {
