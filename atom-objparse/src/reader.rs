@@ -64,10 +64,6 @@ impl Reader {
         }
     }
 
-    pub fn is_native_endian(&self) -> bool {
-        self.endian == Endian::Native
-    }
-
     pub fn set_reverse_endian(&mut self) {
         self.endian = Endian::Reverse;
     }

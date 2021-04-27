@@ -43,11 +43,17 @@ impl Segment64 {
 pub struct Section64 {
     pub sect_name: String,
     pub seg_name: String,
+    /// memory address of this section
     pub addr: u64,
+    /// size in bytes of this section
     pub size: u64,
+    /// file offset of this section
     pub offset: u32,
+    /// section alignment (power of 2)
     pub align: u32,
+    /// file offset of relocation entries
     pub reloff: u32,
+    /// number of relocation entries
     pub nreloc: u32,
     pub flags: (SectionAttrs, SectionType),
     pub reserved_1: u32,

@@ -4,7 +4,7 @@ mod nlist;
 
 use self::load_command::parse_load_command;
 use crate::reader::Reader;
-use atom_macho::MachO;
+use atom_macho::{load_command::segment64::Section64, MachO};
 
 pub fn parse_macho(buf: &mut Reader) -> Option<MachO> {
     let header = header::parse_macho_header(buf)?;
@@ -18,4 +18,11 @@ pub fn parse_macho(buf: &mut Reader) -> Option<MachO> {
         header,
         load_commands,
     })
+}
+
+pub fn parse_section(buf: &Reader, section: &Section64) -> Vec<u8> {
+    let data_start = section.offset as usize;
+    let data_end = data_start + section.size as usize;
+    let data_slice = &buf.get_full_slice()[data_start..data_end];
+    data_slice.to_vec()
 }

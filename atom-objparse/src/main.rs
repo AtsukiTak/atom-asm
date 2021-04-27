@@ -1,7 +1,12 @@
+mod hex;
 mod macho;
 mod reader;
 
-use crate::reader::{Bytes, Reader};
+use crate::{
+    hex::HexVec,
+    reader::{Bytes, Reader},
+};
+use atom_macho::load_command::LoadCommand;
 use std::{fs::File, io::Read as _};
 
 fn main() {
@@ -14,7 +19,20 @@ fn main() {
 
     // try parse macho
     if let Some(macho) = macho::parse_macho(&mut buf.clone()) {
-        dbg!(macho);
+        dbg!(&macho);
+        macho
+            .load_commands
+            .iter()
+            .filter_map(|cmd| match cmd {
+                LoadCommand::Segment64(seg) => Some(seg),
+                _ => None,
+            })
+            .flat_map(|seg| seg.sections.iter())
+            .enumerate()
+            .for_each(|(i, sec)| {
+                let data = macho::parse_section(&buf.clone(), sec);
+                println!("Section {} : {:?}", i, HexVec::new(&data));
+            });
     }
 }
 
