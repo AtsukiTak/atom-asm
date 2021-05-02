@@ -1,7 +1,7 @@
-fn main() {
-    println!("Hello, world!");
-}
+mod macho;
 
-fn gen_macho() -> Vec<u8> {
-    vec![]
+fn main() {
+    let macho = macho::gen_demo();
+    let bytes = macho::serialize(&macho);
+    // write into file
 }

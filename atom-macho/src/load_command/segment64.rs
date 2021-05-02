@@ -6,13 +6,21 @@ use std::fmt;
 pub struct Segment64 {
     /// includes sizeof Section64 structs
     pub cmd_size: u32,
+    /// segment name
     pub seg_name: String,
+    /// memory address of this segment
     pub vm_addr: u64,
+    /// memory size of this segment
     pub vm_size: u64,
+    /// file offset of this segment
     pub file_off: u64,
+    /// amount to map from the file
     pub file_size: u64,
+    /// maximum VM protection
     pub max_prot: i32,
+    /// initial VM protection
     pub init_prot: i32,
+    /// flags
     pub flags: u32,
     pub sections: Vec<Section64>,
 }
@@ -98,6 +106,8 @@ impl SectionType {
 
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SectionAttr {
+    /// This section contains only executable machine instructions. The standard tools set this
+    /// flag for the sections __TEXT,__text, __TEXT,__symbol_stub, and __TEXT,__picsymbol_stub.
     PureInstructions = 0x80000000,
     /// section contains coalesced symbols that are not to be
     /// in a ranlib table of contents
@@ -114,7 +124,7 @@ pub enum SectionAttr {
     /// from sections with this attribute into its output file.  These sections
     /// generally contain DWARF debugging info.
     Debug = 0x02000000,
-    /// section contains some machine instructions.
+    /// section contains some executable machine instructions.
     SomeInstructions = 0x00000400,
     /// section has external relocation entries.
     ExtReloc = 0x00000200,
@@ -135,15 +145,23 @@ pub struct SectionAttrs {
 }
 
 impl SectionAttrs {
+    pub fn new() -> SectionAttrs {
+        SectionAttrs { attrs: Vec::new() }
+    }
+
+    pub fn push(&mut self, attr: SectionAttr) {
+        self.attrs.push(attr);
+    }
+
     pub fn from_u32(flags: u32) -> Self {
-        let mut attrs = Vec::new();
+        let mut attrs = SectionAttrs::new();
         for i in 8..=31 {
             let attr_n = flags & (1 << i);
             if attr_n != 0 {
                 attrs.push(SectionAttr::from_u32(attr_n));
             }
         }
-        SectionAttrs { attrs }
+        attrs
     }
 }
 
