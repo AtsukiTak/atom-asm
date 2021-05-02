@@ -20,7 +20,7 @@ fn main() {
         assert_eq!(header.cputype, CPU_TYPE_X86_64);
         assert_eq!(header.ncmds as usize, commands.len());
         for &MachCommand(ref cmd, _cmdsize) in commands {
-            if let &LoadCommand::Segment64 {
+            if let &LoadCommand::SegmentCommand64 {
                 ref segname,
                 ref sections,
                 ..

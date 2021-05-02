@@ -8,7 +8,7 @@ use self::{
     sym_tab::parse_sym_tab,
 };
 use crate::reader::Reader;
-use atom_macho::load_command::{BuildVersion, DySymTab, LoadCommand, Segment64, SymTab};
+use atom_macho::load_command::{BuildVersion, DySymTab, LoadCommand, SegmentCommand64, SymTab};
 
 pub fn parse_load_command(buf: &mut Reader) -> LoadCommand {
     use LoadCommand as LC;
@@ -17,7 +17,7 @@ pub fn parse_load_command(buf: &mut Reader) -> LoadCommand {
     let cmd_type_n = buf.clone().read_u32();
 
     match cmd_type_n {
-        Segment64::CMD_TYPE => {
+        SegmentCommand64::TYPE => {
             let (segment, sections) = parse_segment64(buf);
             LC::Segment64(segment, sections)
         }

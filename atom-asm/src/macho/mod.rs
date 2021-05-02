@@ -2,7 +2,7 @@ mod header;
 mod load_command;
 
 use self::load_command::{
-    segment64::{Section64Builder, Segment64Builder},
+    segment64::{Section64Builder, SegmentCommand64Builder},
     symtab::SymTabBuilder,
 };
 use atom_macho::MachO;
@@ -21,9 +21,9 @@ pub fn gen_demo() -> MachO {
         .offset(0xD0)
         .build();
 
-    let seg_cmd = Segment64Builder::new()
+    let seg_cmd = SegmentCommand64Builder::new()
         .add_section(sect_data.len() as u64)
-        .file_off(0xD0)
+        .fileoff(0xD0)
         .flags(0)
         .build();
 

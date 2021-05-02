@@ -1,27 +1,28 @@
 use atom_macho::load_command::segment64::{
-    Section64, SectionAttr, SectionAttrs, SectionType, Segment64,
+    Section64, SectionAttr, SectionAttrs, SectionType, SegmentCommand64,
 };
 
-pub struct Segment64Builder {
-    cmd: Segment64,
+pub struct SegmentCommand64Builder {
+    cmd: SegmentCommand64,
 }
 
-impl Segment64Builder {
+impl SegmentCommand64Builder {
     pub fn new() -> Self {
-        Segment64Builder {
-            cmd: Segment64 {
-                cmd_size: Segment64::cmd_size(),
+        SegmentCommand64Builder {
+            cmd: SegmentCommand64 {
+                cmd: SegmentCommand64::TYPE,
+                cmdsize: SegmentCommand64::SIZE,
                 // always "" in object file
-                seg_name: "".to_string(),
+                segname: "".to_string(),
                 // always 0 in object file
-                vm_addr: 0,
-                vm_size: 0,
-                file_off: 0,
-                file_size: 0,
+                vmaddr: 0,
+                vmsize: 0,
+                fileoff: 0,
+                filesize: 0,
                 // always 7 (rwx) in object file
-                max_prot: 7,
+                maxprot: 7,
                 // always 7 (rwx) in object file
-                init_prot: 7,
+                initprot: 7,
                 nsects: 0,
                 flags: 0,
             },
@@ -29,15 +30,15 @@ impl Segment64Builder {
     }
 
     pub fn add_section(&mut self, size: u64) -> &mut Self {
-        self.cmd.cmd_size += Section64::cmd_size();
+        self.cmd.cmdsize += Section64::SIZE;
         self.cmd.nsects += 1;
-        self.cmd.vm_size += size;
-        self.cmd.file_size += size;
+        self.cmd.vmsize += size;
+        self.cmd.filesize += size;
         self
     }
 
-    pub fn file_off(&mut self, file_off: u64) -> &mut Self {
-        self.cmd.file_off = file_off;
+    pub fn fileoff(&mut self, fileoff: u64) -> &mut Self {
+        self.cmd.fileoff = fileoff;
         self
     }
 
@@ -46,7 +47,7 @@ impl Segment64Builder {
         self
     }
 
-    pub fn build(&self) -> Segment64 {
+    pub fn build(&self) -> SegmentCommand64 {
         self.cmd.clone()
     }
 }
@@ -59,8 +60,8 @@ impl Section64Builder {
     pub fn new() -> Self {
         Section64Builder {
             cmd: Section64 {
-                sect_name: "".to_string(),
-                seg_name: "".to_string(),
+                sectname: "".to_string(),
+                segname: "".to_string(),
                 addr: 0,
                 size: 0,
                 offset: 0,
@@ -68,17 +69,17 @@ impl Section64Builder {
                 reloff: 0,
                 nreloc: 0,
                 flags: (SectionAttrs::new(), SectionType::Regular),
-                reserved_1: 0,
-                reserved_2: 0,
-                reserved_3: 0,
+                reserved1: 0,
+                reserved2: 0,
+                reserved3: 0,
             },
         }
     }
 
     /// configure this section as __TEXT.__text section
     pub fn text_section(&mut self) -> &mut Self {
-        self.cmd.sect_name = "__text".to_string();
-        self.cmd.seg_name = "__TEXT".to_string();
+        self.cmd.sectname = "__text".to_string();
+        self.cmd.segname = "__TEXT".to_string();
 
         // __TEXT.__text セクションではだいたい
         // ↓の2つのattrを有効にする

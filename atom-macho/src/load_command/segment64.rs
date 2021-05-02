@@ -3,55 +3,56 @@ use num_traits::FromPrimitive;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Segment64 {
+pub struct SegmentCommand64 {
+    /// SegmentCommand64::TYPE
+    pub cmd: u32,
     /// includes sizeof Section64 structs
-    pub cmd_size: u32,
+    pub cmdsize: u32,
     /// segment name
-    pub seg_name: String,
+    pub segname: String,
     /// memory address of this segment
-    pub vm_addr: u64,
+    pub vmaddr: u64,
     /// memory size of this segment
-    pub vm_size: u64,
+    pub vmsize: u64,
     /// file offset of this segment
-    pub file_off: u64,
+    pub fileoff: u64,
     /// amount to map from the file
-    pub file_size: u64,
+    pub filesize: u64,
     /// maximum VM protection
-    pub max_prot: i32,
+    pub maxprot: i32,
     /// initial VM protection
-    pub init_prot: i32,
+    pub initprot: i32,
     /// number of sections in segment
     pub nsects: u32,
     /// flags
     pub flags: u32,
 }
 
-impl Segment64 {
-    pub const CMD_TYPE: u32 = 0x19;
+impl SegmentCommand64 {
+    pub const TYPE: u32 = 0x19;
 
-    /// Byte size of `Segment64` command.
+    /// Byte size of `SegmentCommand64` command.
     /// This does not include `Section64` command size.
     /// So this is constant.
     #[rustfmt::skip]
-    pub const fn cmd_size() -> u32 {
-        4           // cmd
-            + 4     // cmd_size
-            + 16    // seg_name
-            + 8     // vm_addr
-            + 8     // vm_size
-            + 8     // file_off
-            + 8     // file_size
-            + 4     // max_prot
-            + 4     // init_prot
-            + 4     // nsects
-            + 4     // flags
-    }
+    pub const SIZE: u32 =
+        4       // cmd
+        + 4     // cmdsize
+        + 16    // segname
+        + 8     // vmaddr
+        + 8     // vmsize
+        + 8     // fileoff
+        + 8     // filesize
+        + 4     // maxprot
+        + 4     // initprot
+        + 4     // nsects
+        + 4; // flags
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Section64 {
-    pub sect_name: String,
-    pub seg_name: String,
+    pub sectname: String,
+    pub segname: String,
     /// memory address of this section
     pub addr: u64,
     /// size in bytes of this section
@@ -65,16 +66,16 @@ pub struct Section64 {
     /// number of relocation entries for this section
     pub nreloc: u32,
     pub flags: (SectionAttrs, SectionType),
-    pub reserved_1: u32,
-    pub reserved_2: u32,
-    pub reserved_3: u32,
+    pub reserved1: u32,
+    pub reserved2: u32,
+    pub reserved3: u32,
 }
 
 impl Section64 {
     #[rustfmt::skip]
-    pub const fn cmd_size() -> u32 {
-        16          // sect_name
-            + 16    // seg_name
+    pub const SIZE: u32 =
+        16          // sectname
+            + 16    // segname
             + 8     // addr
             + 8     // size
             + 4     // offset
@@ -84,15 +85,14 @@ impl Section64 {
             + 4     // flags
             + 4     // reserved1
             + 4     // reserved2
-            + 4     // reserved3
-    }
+            + 4; // reserved3
 }
 
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SectionType {
     Regular = 0x0,
-    ZeroFill = 0x1,
-    CStringLiterals = 0x2,
+    Zerofill = 0x1,
+    CstringLiterals = 0x2,
     FourByteLiterals = 0x3,
     EightByteLiterals = 0x4,
     LiteralPointers = 0x5,
