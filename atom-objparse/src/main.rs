@@ -24,10 +24,10 @@ fn main() {
             .load_commands
             .iter()
             .filter_map(|cmd| match cmd {
-                LoadCommand::Segment64(seg) => Some(seg),
+                LoadCommand::Segment64(_, sects) => Some(sects),
                 _ => None,
             })
-            .flat_map(|seg| seg.sections.iter())
+            .flatten()
             .enumerate()
             .for_each(|(i, sec)| {
                 let data = macho::parse_section(&buf.clone(), sec);

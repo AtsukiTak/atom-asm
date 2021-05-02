@@ -17,7 +17,10 @@ pub fn parse_load_command(buf: &mut Reader) -> LoadCommand {
     let cmd_type_n = buf.clone().read_u32();
 
     match cmd_type_n {
-        Segment64::CMD_TYPE => LC::Segment64(parse_segment64(buf)),
+        Segment64::CMD_TYPE => {
+            let (segment, sections) = parse_segment64(buf);
+            LC::Segment64(segment, sections)
+        }
         SymTab::CMD_TYPE => LC::SymTab(parse_sym_tab(buf)),
         BuildVersion::CMD_TYPE => LC::BuildVersion(parse_build_version(buf)),
         DySymTab::CMD_TYPE => LC::DySymTab(parse_dy_sym_tab(buf)),

@@ -5,12 +5,12 @@ pub mod sym_tab;
 
 pub use self::build_version::BuildVersion;
 pub use self::dy_sym_tab::DySymTab;
-pub use self::segment64::Segment64;
+pub use self::segment64::{Section64, Segment64};
 pub use self::sym_tab::SymTab;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LoadCommand {
-    Segment64(Segment64),
+    Segment64(Segment64, Vec<Section64>),
     SymTab(SymTab),
     DySymTab(DySymTab),
     BuildVersion(BuildVersion),
@@ -21,7 +21,7 @@ impl LoadCommand {
         use LoadCommand as LC;
 
         match self {
-            LC::Segment64(_) => Segment64::CMD_TYPE,
+            LC::Segment64(_, _) => Segment64::CMD_TYPE,
             LC::SymTab(_) => SymTab::CMD_TYPE,
             LC::DySymTab(_) => DySymTab::CMD_TYPE,
             LC::BuildVersion(_) => BuildVersion::CMD_TYPE,
@@ -32,7 +32,7 @@ impl LoadCommand {
         use LoadCommand as LC;
 
         match self {
-            LC::Segment64(cmd) => cmd.cmd_size,
+            LC::Segment64(cmd, _) => cmd.cmd_size,
             LC::SymTab(cmd) => cmd.cmd_size,
             LC::DySymTab(cmd) => cmd.cmd_size,
             LC::BuildVersion(cmd) => cmd.cmd_size,

@@ -1,7 +1,7 @@
 use crate::reader::Reader;
 use atom_macho::load_command::segment64::{Section64, SectionAttrs, SectionType, Segment64};
 
-pub fn parse_segment64(buf: &mut Reader) -> Segment64 {
+pub fn parse_segment64(buf: &mut Reader) -> (Segment64, Vec<Section64>) {
     let start_pos = buf.pos();
 
     let cmd_type = buf.read_u32();
@@ -20,12 +20,7 @@ pub fn parse_segment64(buf: &mut Reader) -> Segment64 {
     let nsects = buf.read_u32();
     let flags = buf.read_u32();
 
-    let mut sections = Vec::with_capacity(nsects as usize);
-    for _ in 0..nsects {
-        sections.push(parse_section64(buf));
-    }
-
-    let command = Segment64 {
+    let segment_cmd = Segment64 {
         cmd_size,
         seg_name,
         vm_addr,
@@ -34,9 +29,14 @@ pub fn parse_segment64(buf: &mut Reader) -> Segment64 {
         file_size,
         max_prot,
         init_prot,
+        nsects,
         flags,
-        sections,
     };
+
+    let mut section_cmds = Vec::with_capacity(nsects as usize);
+    for _ in 0..nsects {
+        section_cmds.push(parse_section64(buf));
+    }
 
     // バイト境界は8に揃えられているので
     // その分をskipする
@@ -44,7 +44,7 @@ pub fn parse_segment64(buf: &mut Reader) -> Segment64 {
     let alignment = (8 - (parsed % 8)) % 8;
     buf.skip(alignment);
 
-    command
+    (segment_cmd, section_cmds)
 }
 
 fn parse_section64(buf: &mut Reader) -> Section64 {

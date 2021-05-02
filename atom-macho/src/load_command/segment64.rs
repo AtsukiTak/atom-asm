@@ -20,9 +20,10 @@ pub struct Segment64 {
     pub max_prot: i32,
     /// initial VM protection
     pub init_prot: i32,
+    /// number of sections in segment
+    pub nsects: u32,
     /// flags
     pub flags: u32,
-    pub sections: Vec<Section64>,
 }
 
 impl Segment64 {
@@ -59,9 +60,9 @@ pub struct Section64 {
     pub offset: u32,
     /// section alignment (power of 2)
     pub align: u32,
-    /// file offset of relocation entries
+    /// file offset of the first relocation entry for this section
     pub reloff: u32,
-    /// number of relocation entries
+    /// number of relocation entries for this section
     pub nreloc: u32,
     pub flags: (SectionAttrs, SectionType),
     pub reserved_1: u32,
