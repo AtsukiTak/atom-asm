@@ -1,15 +1,15 @@
 mod build_version;
-mod dy_sym_tab;
+mod dysymtab;
 mod segment64;
 mod symtab;
 
 use self::{
-    build_version::parse_build_version, dy_sym_tab::parse_dy_sym_tab, segment64::parse_segment64,
+    build_version::parse_build_version, dysymtab::parse_dysymtab, segment64::parse_segment64,
     symtab::parse_sym_tab,
 };
 use crate::reader::Reader;
 use atom_macho::load_command::{
-    BuildVersionCommand, DySymtabCommand, LoadCommand, SegmentCommand64, SymtabCommand,
+    BuildVersionCommand, DysymtabCommand, LoadCommand, SegmentCommand64, SymtabCommand,
 };
 
 pub fn parse_load_command(buf: &mut Reader) -> LoadCommand {
@@ -23,12 +23,12 @@ pub fn parse_load_command(buf: &mut Reader) -> LoadCommand {
             let (segment, sections) = parse_segment64(buf);
             LC::Segment64(segment, sections)
         }
-        SymtabCommand::TYPE => LC::SymtabCommand(parse_sym_tab(buf)),
+        SymtabCommand::TYPE => LC::Symtab(parse_sym_tab(buf)),
         BuildVersionCommand::TYPE => {
             let (build_ver, tool_ver) = parse_build_version(buf);
             LC::BuildVersion(build_ver, tool_ver)
         }
-        DySymtabCommand::CMD_TYPE => LC::DySymtabCommand(parse_dy_sym_tab(buf)),
+        DysymtabCommand::TYPE => LC::Dysymtab(parse_dysymtab(buf)),
         _ => panic!("Unsupported cmd_type 0x{:X}", cmd_type_n),
     }
 }
