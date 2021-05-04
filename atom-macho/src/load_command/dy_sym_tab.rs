@@ -37,7 +37,7 @@
 /// For executable and object modules the relocation entries continue to hang
 /// off the section structures.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DySymTab {
+pub struct DySymtabCommand {
     pub cmd_size: u32,
     /// index to local symbols
     pub ilocalsym: u32,
@@ -77,6 +77,6 @@ pub struct DySymTab {
     pub nlocrel: u32,
 }
 
-impl DySymTab {
+impl DySymtabCommand {
     pub const CMD_TYPE: u32 = 0xB;
 }

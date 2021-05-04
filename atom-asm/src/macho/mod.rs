@@ -3,7 +3,7 @@ mod load_command;
 
 use self::load_command::{
     segment64::{Section64Builder, SegmentCommand64Builder},
-    symtab::SymTabBuilder,
+    symtab::SymtabCommandBuilder,
 };
 use atom_macho::MachO;
 
@@ -27,7 +27,7 @@ pub fn gen_demo() -> MachO {
         .flags(0)
         .build();
 
-    let symtab_cmd = SymTabBuilder::new()
+    let symtab_cmd = SymtabCommandBuilder::new()
         .sym_off(216)
         .n_syms(1)
         .str_off(232)

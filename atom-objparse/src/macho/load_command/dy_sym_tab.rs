@@ -1,9 +1,9 @@
 use crate::reader::Reader;
-use atom_macho::load_command::DySymTab;
+use atom_macho::load_command::DySymtabCommand;
 
-pub fn parse_dy_sym_tab(buf: &mut Reader) -> DySymTab {
+pub fn parse_dy_sym_tab(buf: &mut Reader) -> DySymtabCommand {
     let cmd_type = buf.read_u32();
-    if cmd_type != DySymTab::CMD_TYPE {
+    if cmd_type != DySymtabCommand::CMD_TYPE {
         panic!("Invalid cmd number");
     }
 
@@ -27,7 +27,7 @@ pub fn parse_dy_sym_tab(buf: &mut Reader) -> DySymTab {
     let locreloff = buf.read_u32();
     let nlocrel = buf.read_u32();
 
-    DySymTab {
+    DySymtabCommand {
         cmd_size,
         ilocalsym,
         nlocalsym,
