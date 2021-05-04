@@ -5,19 +5,22 @@ use num_traits::FromPrimitive;
 /// binary was built to run for its platform.  The list of known platforms and
 /// tool values following it.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BuildVersion {
-    /// sizeof(BuildVersion) + ntools * sizeof(BuildToolVersion)
-    pub cmd_size: u32,
+pub struct BuildVersionCommand {
+    pub cmd: u32,
+    /// BuildVersion::SIZE + ntools * BuildToolVersion::SIZE
+    pub cmdsize: u32,
     pub platform: Platform,
+    /// X.Y.Z is encoded in nibbles xxxx.yy.zz
     pub minos: Version,
+    /// X.Y.Z is encoded in nibbles xxxx.yy.zz
     pub sdk: Version,
     pub ntools: u32,
-
-    pub tools: Vec<BuildToolVersion>,
 }
 
-impl BuildVersion {
-    pub const CMD_TYPE: u32 = 0x32;
+impl BuildVersionCommand {
+    pub const TYPE: u32 = 0x32;
+
+    pub const SIZE: u32 = 0x18; // 24
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
@@ -64,6 +67,10 @@ impl Version {
 pub struct BuildToolVersion {
     pub tool: Tool,
     pub version: u32,
+}
+
+impl BuildToolVersion {
+    pub const SIZE: u32 = 0x8;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
