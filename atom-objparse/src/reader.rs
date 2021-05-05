@@ -76,10 +76,6 @@ impl Reader {
         self.buf.set_position(pos as u64);
     }
 
-    pub fn get_full_slice(&self) -> &[u8] {
-        self.buf.get_ref()
-    }
-
     pub fn skip(&mut self, n: usize) -> &mut Reader {
         self.buf.set_position(self.buf.position() + n as u64);
         self
@@ -108,6 +104,14 @@ impl Reader {
 
     pub fn read_u64(&mut self) -> u64 {
         endian_read!(self, read_u64)
+    }
+
+    pub fn read_bytes(&mut self, size: usize) -> &[u8] {
+        let start = self.pos() as usize;
+        let end = start + size;
+        self.skip(size);
+
+        &self.buf.get_ref()[start..end]
     }
 
     pub fn read_fixed_size_string(&mut self, len: usize) -> String {

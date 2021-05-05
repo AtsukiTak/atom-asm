@@ -8,6 +8,7 @@ use atom_macho::{
     header::Header64,
     load_command::{segment64::Section64, LoadCommand},
     nlist::NList64,
+    string_table::StringTable,
 };
 
 #[derive(Debug)]
@@ -16,6 +17,7 @@ pub struct FullMacho {
     load_commands: Vec<LoadCommand>,
     sections: Vec<Hex<Vec<u8>>>,
     nlists: Vec<NList64>,
+    string_table: Option<StringTable>,
 }
 
 pub fn parse_macho(buf: &mut Reader) -> Option<FullMacho> {
@@ -24,14 +26,18 @@ pub fn parse_macho(buf: &mut Reader) -> Option<FullMacho> {
     let mut load_commands = Vec::with_capacity(header.n_cmds as usize);
     let mut sections = Vec::new();
     let mut nlists = Vec::new();
+    let mut string_table = None;
 
     for _ in 0..header.n_cmds {
         let cmd = parse_load_command(buf);
 
         match &cmd {
             LoadCommand::Segment64(_, ref sects) => {
+                let mut buf = buf.clone();
                 for sect in sects {
-                    sections.push(extract_section(buf, sect));
+                    buf.set_pos(sect.offset as usize);
+                    let data = buf.read_bytes(sect.size as usize).to_vec();
+                    sections.push(Hex::new(data));
                 }
             }
             LoadCommand::Symtab(symtab) => {
@@ -44,6 +50,9 @@ pub fn parse_macho(buf: &mut Reader) -> Option<FullMacho> {
                 }
 
                 // extract string table
+                buf.set_pos(symtab.stroff as usize);
+                let str_table_data = buf.read_bytes(symtab.strsize as usize);
+                string_table.replace(StringTable::new(str_table_data.to_vec()));
             }
             _ => {}
         };
@@ -56,12 +65,6 @@ pub fn parse_macho(buf: &mut Reader) -> Option<FullMacho> {
         load_commands,
         sections,
         nlists,
+        string_table,
     })
-}
-
-fn extract_section(buf: &Reader, section: &Section64) -> Hex<Vec<u8>> {
-    let data_start = section.offset as usize;
-    let data_end = data_start + section.size as usize;
-    let data_slice = &buf.get_full_slice()[data_start..data_end];
-    Hex::new(data_slice.to_vec())
 }
