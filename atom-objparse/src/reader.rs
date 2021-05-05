@@ -122,13 +122,4 @@ impl Reader {
 
         String::from_utf8(buf).unwrap()
     }
-
-    pub fn read_c_string(&mut self) -> String {
-        (&mut self.buf)
-            .bytes()
-            .map(Result::unwrap)
-            .take_while(|byte| *byte != 0)
-            .map(char::from)
-            .collect::<String>()
-    }
 }

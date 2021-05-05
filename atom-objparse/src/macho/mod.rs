@@ -5,10 +5,7 @@ mod nlist;
 use self::{load_command::parse_load_command, nlist::parse_nlist};
 use crate::{hex::Hex, reader::Reader};
 use atom_macho::{
-    header::Header64,
-    load_command::{segment64::Section64, LoadCommand},
-    nlist::NList64,
-    string_table::StringTable,
+    header::Header64, load_command::LoadCommand, nlist::NList64, string_table::StringTable,
 };
 
 #[derive(Debug)]
@@ -52,7 +49,7 @@ pub fn parse_macho(buf: &mut Reader) -> Option<FullMacho> {
                 // extract string table
                 buf.set_pos(symtab.stroff as usize);
                 let str_table_data = buf.read_bytes(symtab.strsize as usize);
-                string_table.replace(StringTable::new(str_table_data.to_vec()));
+                string_table.replace(StringTable::from(str_table_data.to_vec()));
             }
             _ => {}
         };
