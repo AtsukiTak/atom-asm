@@ -1,14 +1,14 @@
 use std::fmt;
 
-pub struct HexVec<'a>(&'a Vec<u8>);
+pub struct Hex<T>(pub T);
 
-impl<'a> HexVec<'a> {
-    pub fn new(vec: &'a Vec<u8>) -> Self {
-        HexVec(vec)
+impl<T> Hex<T> {
+    pub fn new(item: T) -> Self {
+        Hex(item)
     }
 }
 
-impl<'a> fmt::Debug for HexVec<'a> {
+impl<T: fmt::Debug> fmt::Debug for Hex<T> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.write_fmt(format_args!("{:02X?}", self.0))
     }

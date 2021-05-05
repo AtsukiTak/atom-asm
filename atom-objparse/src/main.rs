@@ -2,11 +2,7 @@ mod hex;
 mod macho;
 mod reader;
 
-use crate::{
-    hex::HexVec,
-    reader::{Bytes, Reader},
-};
-use atom_macho::load_command::LoadCommand;
+use crate::reader::{Bytes, Reader};
 use std::{fs::File, io::Read as _};
 
 fn main() {
@@ -20,19 +16,6 @@ fn main() {
     // try parse macho
     if let Some(macho) = macho::parse_macho(&mut buf.clone()) {
         dbg!(&macho);
-        macho
-            .load_commands
-            .iter()
-            .filter_map(|cmd| match cmd {
-                LoadCommand::Segment64(_, sects) => Some(sects),
-                _ => None,
-            })
-            .flatten()
-            .enumerate()
-            .for_each(|(i, sec)| {
-                let data = macho::parse_section(&buf.clone(), sec);
-                println!("Section {} : {:?}", i, HexVec::new(&data));
-            });
     }
 }
 
