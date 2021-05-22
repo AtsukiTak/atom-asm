@@ -13,6 +13,10 @@ pub struct Header64 {
     pub reserved: u32,
 }
 
+impl Header64 {
+    pub const SIZE: u32 = 0x20; // 32 bytes
+}
+
 /// An integer containing a value identifying this file as a Mach-O file.
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Magic {

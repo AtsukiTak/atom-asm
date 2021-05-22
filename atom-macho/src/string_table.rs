@@ -6,7 +6,7 @@ pub struct StringTable {
 
 impl StringTable {
     pub fn new() -> Self {
-        StringTable { data: vec![0] }
+        StringTable { data: Vec::new() }
     }
 
     pub fn get(&self, idx: usize) -> &str {
@@ -17,11 +17,18 @@ impl StringTable {
     pub fn push(&mut self, s: &str) {
         for c in s.chars() {
             if !c.is_ascii() {
-                panic!("can not push non-ascii char");
+                panic!("could not push non-ascii char");
             }
             self.data.push(c as u8);
         }
+    }
+
+    pub fn push_null(&mut self) {
         self.data.push(0);
+    }
+
+    pub fn len(&self) -> usize {
+        self.data.len()
     }
 }
 
