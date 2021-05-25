@@ -1,7 +1,7 @@
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NList64 {
     /// An index into the string table. To specify an empty string (""), set this value to 0.
     pub n_strx: u32,
@@ -28,7 +28,7 @@ impl NList64 {
     pub const MAX_SECT: u8 = 255;
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NTypeField {
     Norm {
         /// private external symbol bit
@@ -62,6 +62,17 @@ impl NTypeField {
             NTypeField::Stab(DebugSymbol::from_u8(n_stab))
         }
     }
+
+    pub fn to_u8(self) -> u8 {
+        match self {
+            NTypeField::Norm {
+                n_pext,
+                n_type,
+                n_ext,
+            } => n_pext as u8 * Self::N_PEXT_MASK | n_type.to_u8() | n_ext as u8 * Self::N_EXT_MASK,
+            NTypeField::Stab(stab) => stab.to_u8(),
+        }
+    }
 }
 
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
@@ -85,6 +96,10 @@ impl NType {
     pub fn from_u8(n: u8) -> Self {
         FromPrimitive::from_u8(n).unwrap_or_else(|| panic!("Invalid n_type number {}", n))
     }
+
+    pub fn to_u8(self) -> u8 {
+        self as u8
+    }
 }
 
 /// TODO : implement all
@@ -97,5 +112,9 @@ pub enum DebugSymbol {
 impl DebugSymbol {
     pub fn from_u8(n: u8) -> Self {
         FromPrimitive::from_u8(n).unwrap_or_else(|| panic!("Unsupported debug symbol {}", n))
+    }
+
+    pub fn to_u8(self) -> u8 {
+        self as u8
     }
 }

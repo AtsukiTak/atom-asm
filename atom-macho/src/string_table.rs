@@ -32,6 +32,12 @@ impl StringTable {
     }
 }
 
+impl AsRef<[u8]> for StringTable {
+    fn as_ref(&self) -> &[u8] {
+        self.data.as_ref()
+    }
+}
+
 impl From<Vec<u8>> for StringTable {
     fn from(data: Vec<u8>) -> Self {
         assert!(data.starts_with(&[0]));

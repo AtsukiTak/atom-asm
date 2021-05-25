@@ -8,7 +8,7 @@ pub struct SegmentCommand64 {
     pub cmd: u32,
     /// includes sizeof Section64 structs
     pub cmdsize: u32,
-    /// segment name
+    /// segment name. 16byte
     pub segname: String,
     /// memory address of this segment
     pub vmaddr: u64,
@@ -51,7 +51,9 @@ impl SegmentCommand64 {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Section64 {
+    /// 16-byte string
     pub sectname: String,
+    /// 16-byte string
     pub segname: String,
     /// memory address of this section
     pub addr: u64,
@@ -65,6 +67,9 @@ pub struct Section64 {
     pub reloff: u32,
     /// number of relocation entries for this section
     pub nreloc: u32,
+    /// represented as u32.
+    /// higher 3 bytes represent SectionAttrs,
+    /// lower 1 byte represent SectionType.
     pub flags: (SectionAttrs, SectionType),
     pub reserved1: u32,
     pub reserved2: u32,
@@ -100,8 +105,14 @@ pub enum SectionType {
 }
 
 impl SectionType {
+    pub const BIT_MASK: u32 = 0x000000ff;
+
     pub fn from_u32(n: u32) -> Self {
         FromPrimitive::from_u32(n).unwrap_or_else(|| panic!("Unsupported section type 0x{:X}", n))
+    }
+
+    pub fn to_u32(self) -> u32 {
+        self as u32
     }
 }
 
@@ -138,6 +149,10 @@ impl SectionAttr {
         FromPrimitive::from_u32(n)
             .unwrap_or_else(|| panic!("Unsupported section attribute 0x{:X}", n))
     }
+
+    pub fn to_u32(self) -> u32 {
+        self as u32
+    }
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -146,6 +161,8 @@ pub struct SectionAttrs {
 }
 
 impl SectionAttrs {
+    pub const BIT_MASK: u32 = 0xffffff00;
+
     pub fn new() -> SectionAttrs {
         SectionAttrs { attrs: Vec::new() }
     }
@@ -163,6 +180,14 @@ impl SectionAttrs {
             }
         }
         attrs
+    }
+
+    pub fn to_u32(&self) -> u32 {
+        let mut n = 0;
+        for attr in self.attrs.iter() {
+            n |= attr.to_u32();
+        }
+        n
     }
 }
 

@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 atom-macho = { path = "../atom-macho" }
+byteorder = "1.4.3"

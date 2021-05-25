@@ -59,8 +59,8 @@ fn parse_section64(buf: &mut Reader) -> Section64 {
     let nreloc = buf.read_u32();
 
     let flags_n = buf.read_u32();
-    let sect_type = SectionType::from_u32(flags_n & 0x000000ff);
-    let sect_attrs = SectionAttrs::from_u32(flags_n & 0xffffff00);
+    let sect_type = SectionType::from_u32(flags_n & SectionType::BIT_MASK);
+    let sect_attrs = SectionAttrs::from_u32(flags_n & SectionAttrs::BIT_MASK);
 
     let reserved1 = buf.read_u32();
     let reserved2 = buf.read_u32();
