@@ -78,6 +78,7 @@ mod tests {
         assert_eq!(table.get(0), "");
 
         let mut table = StringTable::new();
+        table.push_null();
         table.push("hoge");
         assert_eq!(table.get(0), "");
     }
@@ -94,6 +95,7 @@ mod tests {
     #[test]
     fn get_string() {
         let mut table = StringTable::new();
+        table.push_null();
         table.push("hoge");
 
         assert_eq!(table.get(1), "hoge");
