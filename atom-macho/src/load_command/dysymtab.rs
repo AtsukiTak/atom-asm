@@ -1,3 +1,6 @@
+use crate::io::{Endian, ReadExt as _, WriteExt as _};
+use std::io::{Read, Write};
+
 /// This is the second set of the symbolic information which is used to support
 /// the data structures for the dynamically link editor.
 ///
@@ -82,4 +85,115 @@ impl DysymtabCommand {
     pub const TYPE: u32 = 0xB;
 
     pub const SIZE: u32 = 0x50;
+
+    pub fn read_from_in<R: Read>(read: &mut R, endian: Endian) -> Self {
+        let cmd = read.read_u32_in(endian);
+        assert_eq!(cmd, Self::TYPE);
+
+        let cmdsize = read.read_u32_in(endian);
+        assert_eq!(cmdsize, Self::SIZE);
+
+        let ilocalsym = read.read_u32_in(endian);
+        let nlocalsym = read.read_u32_in(endian);
+        let iextdefsym = read.read_u32_in(endian);
+        let nextdefsym = read.read_u32_in(endian);
+        let iundefsym = read.read_u32_in(endian);
+        let nundefsym = read.read_u32_in(endian);
+        let tocoff = read.read_u32_in(endian);
+        let ntoc = read.read_u32_in(endian);
+        let modtaboff = read.read_u32_in(endian);
+        let nmodtab = read.read_u32_in(endian);
+        let extrefsymoff = read.read_u32_in(endian);
+        let nextrefsyms = read.read_u32_in(endian);
+        let indirectsymoff = read.read_u32_in(endian);
+        let nindirectsyms = read.read_u32_in(endian);
+        let extreloff = read.read_u32_in(endian);
+        let nextrel = read.read_u32_in(endian);
+        let locreloff = read.read_u32_in(endian);
+        let nlocrel = read.read_u32_in(endian);
+
+        DysymtabCommand {
+            cmd,
+            cmdsize,
+            ilocalsym,
+            nlocalsym,
+            iextdefsym,
+            nextdefsym,
+            iundefsym,
+            nundefsym,
+            tocoff,
+            ntoc,
+            modtaboff,
+            nmodtab,
+            extrefsymoff,
+            nextrefsyms,
+            indirectsymoff,
+            nindirectsyms,
+            extreloff,
+            nextrel,
+            locreloff,
+            nlocrel,
+        }
+    }
+
+    pub fn write_into<W: Write>(&self, write: &mut W) {
+        write.write_u32_native(self.cmd);
+        write.write_u32_native(self.cmdsize);
+        write.write_u32_native(self.ilocalsym);
+        write.write_u32_native(self.nlocalsym);
+        write.write_u32_native(self.iextdefsym);
+        write.write_u32_native(self.nextdefsym);
+        write.write_u32_native(self.iundefsym);
+        write.write_u32_native(self.nundefsym);
+        write.write_u32_native(self.tocoff);
+        write.write_u32_native(self.ntoc);
+        write.write_u32_native(self.modtaboff);
+        write.write_u32_native(self.nmodtab);
+        write.write_u32_native(self.extrefsymoff);
+        write.write_u32_native(self.nextrefsyms);
+        write.write_u32_native(self.indirectsymoff);
+        write.write_u32_native(self.nindirectsyms);
+        write.write_u32_native(self.extreloff);
+        write.write_u32_native(self.nextrel);
+        write.write_u32_native(self.locreloff);
+        write.write_u32_native(self.nlocrel);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn write_and_read_dysymtab_command() {
+        let cmd = DysymtabCommand {
+            cmd: DysymtabCommand::TYPE,
+            cmdsize: DysymtabCommand::SIZE,
+            ilocalsym: 0,
+            nlocalsym: 2,
+            iextdefsym: 3,
+            nextdefsym: 4,
+            iundefsym: 5,
+            nundefsym: 9,
+            tocoff: 8,
+            ntoc: 5,
+            modtaboff: 8,
+            nmodtab: 5,
+            extrefsymoff: 0,
+            nextrefsyms: 2,
+            indirectsymoff: 3,
+            nindirectsyms: 6,
+            extreloff: 8,
+            nextrel: 9,
+            locreloff: 0,
+            nlocrel: 2,
+        };
+
+        let mut buf = Vec::new();
+        cmd.write_into(&mut buf);
+
+        let read_cmd = DysymtabCommand::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
+
+        assert_eq!(read_cmd, cmd);
+    }
 }
