@@ -81,7 +81,10 @@ mod tests {
         };
 
         let mut buf = Vec::new();
+
         reloc.write_into(&mut buf);
+
+        assert_eq!(buf.len(), RelocationInfo::SIZE as usize);
 
         let read_reloc = RelocationInfo::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
 

@@ -165,9 +165,13 @@ mod tests {
         };
 
         let mut buf = Vec::new();
+
         nlist.write_into(&mut buf);
 
+        assert_eq!(buf.len(), NList64::SIZE as usize);
+
         let read = NList64::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
+
         assert_eq!(read, nlist);
     }
 }

@@ -180,7 +180,10 @@ mod tests {
         };
 
         let mut buf = Vec::new();
+
         cmd.write_into(&mut buf);
+
+        assert_eq!(buf.len(), BuildVersionCommand::SIZE as usize);
 
         let read_cmd = BuildVersionCommand::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
 
@@ -195,7 +198,10 @@ mod tests {
         };
 
         let mut buf = Vec::new();
+
         version.write_into(&mut buf);
+
+        assert_eq!(buf.len(), BuildToolVersion::SIZE as usize);
 
         let read_version = BuildToolVersion::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
 

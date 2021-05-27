@@ -1,6 +1,10 @@
+use crate::io::{Endian, ReadExt as _, WriteExt as _};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
-use std::fmt;
+use std::{
+    fmt,
+    io::{Read, Write},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SegmentCommand64 {
@@ -34,19 +38,53 @@ impl SegmentCommand64 {
     /// Byte size of `SegmentCommand64` command.
     /// This does not include `Section64` command size.
     /// So this is constant.
-    #[rustfmt::skip]
-    pub const SIZE: u32 =
-        4       // cmd
-        + 4     // cmdsize
-        + 16    // segname
-        + 8     // vmaddr
-        + 8     // vmsize
-        + 8     // fileoff
-        + 8     // filesize
-        + 4     // maxprot
-        + 4     // initprot
-        + 4     // nsects
-        + 4; // flags
+    pub const SIZE: u32 = 0x48; // 72
+
+    pub fn read_from_in<R: Read>(read: &mut R, endian: Endian) -> Self {
+        let cmd = read.read_u32_in(endian);
+        assert_eq!(cmd, Self::TYPE);
+
+        let cmdsize = read.read_u32_in(endian);
+        let segname = read.read_fixed_size_string(16);
+        let vmaddr = read.read_u64_in(endian);
+        let vmsize = read.read_u64_in(endian);
+        let fileoff = read.read_u64_in(endian);
+        let filesize = read.read_u64_in(endian);
+        let maxprot = read.read_i32_in(endian);
+        let initprot = read.read_i32_in(endian);
+        let nsects = read.read_u32_in(endian);
+        let flags = read.read_u32_in(endian);
+
+        assert_eq!(cmdsize, Self::SIZE + nsects * Section64::SIZE);
+
+        SegmentCommand64 {
+            cmd,
+            cmdsize,
+            segname,
+            vmaddr,
+            vmsize,
+            fileoff,
+            filesize,
+            maxprot,
+            initprot,
+            nsects,
+            flags,
+        }
+    }
+
+    pub fn write_into<W: Write>(&self, write: &mut W) {
+        write.write_u32_native(self.cmd);
+        write.write_u32_native(self.cmdsize);
+        write.write_fixed_size_string(self.segname.as_str(), 16);
+        write.write_u64_native(self.vmaddr);
+        write.write_u64_native(self.vmsize);
+        write.write_u64_native(self.fileoff);
+        write.write_u64_native(self.filesize);
+        write.write_i32_native(self.maxprot);
+        write.write_i32_native(self.initprot);
+        write.write_u32_native(self.nsects);
+        write.write_u32_native(self.flags);
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -77,20 +115,59 @@ pub struct Section64 {
 }
 
 impl Section64 {
-    #[rustfmt::skip]
-    pub const SIZE: u32 =
-        16          // sectname
-            + 16    // segname
-            + 8     // addr
-            + 8     // size
-            + 4     // offset
-            + 4     // align
-            + 4     // reloff
-            + 4     // nreloc
-            + 4     // flags
-            + 4     // reserved1
-            + 4     // reserved2
-            + 4; // reserved3
+    pub const SIZE: u32 = 0x50; // 80
+
+    pub fn read_from_in<R: Read>(read: &mut R, endian: Endian) -> Self {
+        let sectname = read.read_fixed_size_string(16);
+        let segname = read.read_fixed_size_string(16);
+        let addr = read.read_u64_in(endian);
+        let size = read.read_u64_in(endian);
+        let offset = read.read_u32_in(endian);
+        let align = read.read_u32_in(endian);
+        let reloff = read.read_u32_in(endian);
+        let nreloc = read.read_u32_in(endian);
+
+        let flags_n = read.read_u32_in(endian);
+        let sect_type = SectionType::from_u32(flags_n & SectionType::BIT_MASK);
+        let sect_attrs = SectionAttrs::from_u32(flags_n & SectionAttrs::BIT_MASK);
+
+        let reserved1 = read.read_u32_in(endian);
+        let reserved2 = read.read_u32_in(endian);
+        let reserved3 = read.read_u32_in(endian);
+
+        Section64 {
+            sectname,
+            segname,
+            addr,
+            size,
+            offset,
+            align,
+            reloff,
+            nreloc,
+            flags: (sect_attrs, sect_type),
+            reserved1,
+            reserved2,
+            reserved3,
+        }
+    }
+
+    pub fn write_into<W: Write>(&self, write: &mut W) {
+        write.write_fixed_size_string(self.sectname.as_str(), 16);
+        write.write_fixed_size_string(self.segname.as_str(), 16);
+        write.write_u64_native(self.addr);
+        write.write_u64_native(self.size);
+        write.write_u32_native(self.offset);
+        write.write_u32_native(self.align);
+        write.write_u32_native(self.reloff);
+        write.write_u32_native(self.nreloc);
+
+        let flags_n = self.flags.0.to_u32() | self.flags.1.to_u32();
+        write.write_u32_native(flags_n);
+
+        write.write_u32_native(self.reserved1);
+        write.write_u32_native(self.reserved2);
+        write.write_u32_native(self.reserved3);
+    }
 }
 
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
@@ -194,5 +271,65 @@ impl SectionAttrs {
 impl fmt::Debug for SectionAttrs {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_set().entries(self.attrs.iter()).finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn write_and_read_segment64_command() {
+        let cmd = SegmentCommand64 {
+            cmd: SegmentCommand64::TYPE,
+            cmdsize: SegmentCommand64::SIZE + Section64::SIZE,
+            segname: String::new(),
+            vmaddr: 0,
+            vmsize: 42,
+            fileoff: 100,
+            filesize: 42,
+            maxprot: 7,
+            initprot: 7,
+            nsects: 1,
+            flags: 0,
+        };
+
+        let mut buf = Vec::new();
+
+        cmd.write_into(&mut buf);
+
+        assert_eq!(buf.len(), SegmentCommand64::SIZE as usize);
+
+        let read_cmd = SegmentCommand64::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
+
+        assert_eq!(read_cmd, cmd);
+    }
+
+    #[test]
+    fn write_and_read_section64() {
+        let cmd = Section64 {
+            sectname: "__TEXT,__text".to_string(),
+            segname: String::new(),
+            addr: 0,
+            size: 42,
+            offset: 100,
+            align: 0,
+            reloff: 53,
+            nreloc: 1,
+            flags: (SectionAttrs::new(), SectionType::Regular),
+            reserved1: 0,
+            reserved2: 0,
+            reserved3: 0,
+        };
+
+        let mut buf = Vec::new();
+
+        cmd.write_into(&mut buf);
+
+        assert_eq!(buf.len(), Section64::SIZE as usize);
+
+        let read_cmd = Section64::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
+
+        assert_eq!(read_cmd, cmd);
     }
 }

@@ -190,7 +190,10 @@ mod tests {
         };
 
         let mut buf = Vec::new();
+
         cmd.write_into(&mut buf);
+
+        assert_eq!(buf.len(), DysymtabCommand::SIZE as usize);
 
         let read_cmd = DysymtabCommand::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
 
