@@ -1,5 +1,7 @@
+use crate::io::{Endian, ReadExt as _, WriteExt as _};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
+use std::io::{Read, Write};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NList64 {
@@ -26,6 +28,31 @@ impl NList64 {
 
     pub const NO_SECT: u8 = 0;
     pub const MAX_SECT: u8 = 255;
+
+    pub fn read_from_in<R: Read>(read: &mut R, endian: Endian) -> Self {
+        let n_strx = read.read_u32_in(endian);
+        let n_type_n = read.read_u8();
+        let n_type = NTypeField::from_u8(n_type_n);
+        let n_sect = read.read_u8();
+        let n_desc = read.read_u16_in(endian);
+        let n_value = read.read_u64_in(endian);
+
+        NList64 {
+            n_strx,
+            n_type,
+            n_sect,
+            n_desc,
+            n_value,
+        }
+    }
+
+    pub fn write_into<W: Write>(&self, write: &mut W) {
+        write.write_u32_native(self.n_strx);
+        write.write_u8(self.n_type.to_u8());
+        write.write_u8(self.n_sect);
+        write.write_u16_native(self.n_desc);
+        write.write_u64_native(self.n_value);
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -116,5 +143,31 @@ impl DebugSymbol {
 
     pub fn to_u8(self) -> u8 {
         self as u8
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn write_and_read_nlist() {
+        let nlist = NList64 {
+            n_strx: 42,
+            n_type: NTypeField::Norm {
+                n_pext: false,
+                n_type: NType::Sect,
+                n_ext: true,
+            },
+            n_sect: 2,
+            n_desc: 0,
+            n_value: 42,
+        };
+
+        let mut buf = Vec::new();
+        nlist.write_into(&mut buf);
+
+        let read = NList64::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
+        assert_eq!(read, nlist);
     }
 }
