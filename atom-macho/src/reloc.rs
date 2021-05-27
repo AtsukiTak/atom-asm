@@ -1,4 +1,4 @@
-use byteorder::{ByteOrder, NativeEndian, ReadBytesExt as _, WriteBytesExt as _};
+use crate::io::{Endian, ReadExt, WriteExt};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use std::io::{Read, Write};
@@ -19,10 +19,10 @@ impl RelocationInfo {
     /// size in bytes
     pub const SIZE: u32 = 8;
 
-    pub fn read_from<T: ByteOrder, R: Read>(read: &mut R) -> RelocationInfo {
-        let r_address = read.read_i32::<T>().unwrap();
+    pub fn read_from_in<R: Read>(read: &mut R, endian: Endian) -> RelocationInfo {
+        let r_address = read.read_i32_in(endian);
 
-        let infos = read.read_u32::<T>().unwrap();
+        let infos = read.read_u32_in(endian);
         let r_symbolnum = infos & 0xFFFFFF00;
         let r_pcrel = infos & 0x00000080 == 0x00000080;
         let r_length = RelocLength::from_u32(infos & 0x00000060 >> 5).unwrap();
@@ -40,14 +40,14 @@ impl RelocationInfo {
     }
 
     pub fn write_into(self, write: &mut impl Write) {
-        write.write_i32::<NativeEndian>(self.r_address).unwrap();
+        write.write_i32_native(self.r_address);
 
         let mut infos: u32 = 0;
         infos |= self.r_symbolnum;
         infos |= (self.r_pcrel as u32) * 0x00000080;
         infos |= (self.r_length as u32) << 5;
         infos |= self.r_type as u32;
-        write.write_u32::<NativeEndian>(infos).unwrap();
+        write.write_u32_native(infos);
     }
 }
 
@@ -83,7 +83,7 @@ mod tests {
         let mut buf = Vec::new();
         reloc.write_into(&mut buf);
 
-        let read_reloc = RelocationInfo::read_from::<NativeEndian, _>(&mut buf.as_slice());
+        let read_reloc = RelocationInfo::read_from_in(&mut buf.as_slice(), Endian::NATIVE);
 
         assert_eq!(read_reloc, reloc);
     }
