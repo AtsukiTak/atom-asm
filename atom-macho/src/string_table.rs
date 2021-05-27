@@ -5,8 +5,8 @@ pub struct StringTable {
 }
 
 impl StringTable {
-    pub fn new() -> Self {
-        StringTable { data: Vec::new() }
+    pub fn with_null() -> Self {
+        StringTable { data: vec![0] }
     }
 
     pub fn get(&self, idx: usize) -> &str {
@@ -14,16 +14,13 @@ impl StringTable {
         std::str::from_utf8(bytes).unwrap()
     }
 
-    pub fn push(&mut self, s: &str) {
+    pub fn push_with_null(&mut self, s: &str) {
         for c in s.chars() {
             if !c.is_ascii() {
                 panic!("could not push non-ascii char");
             }
             self.data.push(c as u8);
         }
-    }
-
-    pub fn push_null(&mut self) {
         self.data.push(0);
     }
 
@@ -77,9 +74,8 @@ mod tests {
         let table = StringTable::from(data);
         assert_eq!(table.get(0), "");
 
-        let mut table = StringTable::new();
-        table.push_null();
-        table.push("hoge");
+        let mut table = StringTable::with_null();
+        table.push_with_null("hoge");
         assert_eq!(table.get(0), "");
     }
 
@@ -94,9 +90,8 @@ mod tests {
 
     #[test]
     fn get_string() {
-        let mut table = StringTable::new();
-        table.push_null();
-        table.push("hoge");
+        let mut table = StringTable::with_null();
+        table.push_with_null("hoge");
 
         assert_eq!(table.get(1), "hoge");
     }
