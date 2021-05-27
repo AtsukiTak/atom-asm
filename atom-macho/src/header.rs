@@ -21,7 +21,7 @@ pub struct Header64 {
 impl Header64 {
     pub const SIZE: u32 = 0x20; // 32 bytes
 
-    pub fn read_from(read: &mut impl Read) -> Header64 {
+    pub fn read_from(read: &mut impl Read) -> (Header64, Endian) {
         let magic_n = read.read_u32::<NativeEndian>().unwrap();
         let magic = Magic::from_u32(magic_n);
         let endian = match magic {
@@ -46,7 +46,7 @@ impl Header64 {
 
         let reserved = read.read_u32_in(endian);
 
-        Header64 {
+        let header = Header64 {
             magic,
             cpu_type,
             file_type,
@@ -54,7 +54,9 @@ impl Header64 {
             size_of_cmds,
             flags,
             reserved,
-        }
+        };
+
+        (header, endian)
     }
 
     pub fn write_into(&self, write: &mut impl Write) {

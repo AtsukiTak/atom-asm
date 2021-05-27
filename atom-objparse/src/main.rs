@@ -1,22 +1,20 @@
 mod hex;
 mod macho;
-mod reader;
 
-use crate::reader::{Bytes, Reader};
-use std::{fs::File, io::Read as _};
+use std::{
+    fs::File,
+    io::{Cursor, Read as _},
+};
 
 fn main() {
     let mut file = get_file();
     let mut vec = Vec::new();
     file.read_to_end(&mut vec).unwrap();
 
-    let bytes = Bytes::new(vec);
-    let buf = Reader::new(bytes);
+    let mut buf = Cursor::new(vec);
 
-    // try parse macho
-    if let Some(macho) = macho::parse_macho(&mut buf.clone()) {
-        dbg!(&macho);
-    }
+    let macho = macho::read_macho(&mut buf);
+    dbg!(&macho);
 }
 
 fn get_file() -> File {
