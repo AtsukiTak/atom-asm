@@ -1,6 +1,7 @@
 use crate::hex::Hex;
 use atom_macho::{
-    header::Header64, load_command::LoadCommand, nlist::NList64, string_table::StringTable,
+    header::Header64, load_command::LoadCommand, nlist::NList64, reloc::RelocationInfo,
+    string_table::StringTable,
 };
 use std::io::{Read, Seek, SeekFrom};
 
@@ -8,7 +9,7 @@ use std::io::{Read, Seek, SeekFrom};
 pub struct MachO {
     header: Header64,
     load_commands: Vec<LoadCommand>,
-    sections: Vec<Hex<Vec<u8>>>,
+    sections: Vec<(Hex<Vec<u8>>, Vec<RelocationInfo>)>,
     symbol_tables: Vec<(Vec<NList64>, StringTable)>,
 }
 
@@ -24,7 +25,7 @@ where
         .map(|_| LoadCommand::read_from_in(buf, endian))
         .collect::<Vec<LoadCommand>>();
 
-    // read section datas
+    // read sections
     let sections = load_commands
         .iter()
         .filter_map(|cmd| match cmd {
@@ -33,10 +34,18 @@ where
         })
         .flatten()
         .map(|sect| {
+            // section data
             buf.seek(SeekFrom::Start(sect.offset as u64)).unwrap();
             let mut data = vec![0; sect.size as usize];
             buf.read_exact(&mut data).unwrap();
-            Hex::new(data)
+
+            // reloc info
+            buf.seek(SeekFrom::Start(sect.reloff as u64)).unwrap();
+            let relocs = (0..sect.nreloc)
+                .map(|_| RelocationInfo::read_from_in(buf, endian))
+                .collect::<Vec<_>>();
+
+            (Hex::new(data), relocs)
         })
         .collect::<Vec<_>>();
 
