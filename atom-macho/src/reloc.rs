@@ -35,10 +35,10 @@ impl RelocationInfo {
 
         let infos = read.read_u32_in(endian);
 
-        // order of bit-field is basically determined by endian.
         // Mach-O specification does not clearly specify
         // memory layout of these fields. So we assume that
-        // an order of bit-fields is determined by ordinal way (by endian).
+        // order of bit-fields follows ordinary manner
+        // (inverse order if little endian, and vice versa).
         let (r_symbolnum, r_pcrel, r_length, r_extern, r_type) = if endian == Endian::Little {
             (
                 infos & 0x00FF_FFFF,                                // r_symbolnum
@@ -67,6 +67,10 @@ impl RelocationInfo {
         }
     }
 
+    // Mach-O specification does not clearly specify
+    // memory layout of these fields. So we assume that
+    // order of bit-fields follows ordinary manner
+    // (inverse order if little endian, and vice versa).
     #[cfg(target_endian = "little")]
     pub fn write_into(self, write: &mut impl Write) {
         write.write_i32_native(self.r_address);
@@ -80,6 +84,10 @@ impl RelocationInfo {
         write.write_u32_native(infos);
     }
 
+    // Mach-O specification does not clearly specify
+    // memory layout of these fields. So we assume that
+    // order of bit-fields follows ordinary manner
+    // (inverse order if little endian, and vice versa).
     #[cfg(target_endian = "big")]
     pub fn write_into(self, write: &mut impl Write) {
         write.write_i32_native(self.r_address);
