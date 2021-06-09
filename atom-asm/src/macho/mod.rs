@@ -37,10 +37,15 @@ use atom_macho::{
 ///  80 |           Section64           |
 ///  90 |                               |
 ///  A0 |               ________________|
-///  B0 |_______________|               |
-///  C0 |_________SymtabCommand_________|
-///  D0 |__SectionData__|__SymbolTable__|
-///  E0 |__SymbolTable__|_StringTable_|
+///  B0 |_______________| SymtabCommand |
+///  C0 |_______________________________|
+///  D0 |         SectionData           |
+///  E0 |               ________________|
+///  F0 |_______________|               |
+/// 100 |_________RelocationInfo________|
+/// 110 |                               |
+/// 120 |_________SymbolTable___________|
+///  E0 |_________StringTable_______|
 #[derive(Debug)]
 pub struct MachO {
     pub header: Header64,
@@ -72,8 +77,7 @@ impl MachO {
         symtab_cmd.strsize = 1; // 空文字
 
         // ストリングテーブルの初期化
-        let mut string_table = StringTable::new();
-        string_table.push_null();
+        let mut string_table = StringTable::with_null();
 
         MachO {
             header,
@@ -165,7 +169,6 @@ impl MachO {
         };
         self.nlists.push(nlist);
 
-        self.string_table.push(s);
-        self.string_table.push_null();
+        self.string_table.push_with_null(s);
     }
 }

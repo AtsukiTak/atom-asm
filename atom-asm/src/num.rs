@@ -14,5 +14,6 @@ macro_rules! impl_numext {
     };
 }
 
+impl_numext!(usize);
 impl_numext!(u32);
 impl_numext!(u64);
