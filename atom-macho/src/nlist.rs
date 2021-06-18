@@ -19,7 +19,12 @@ pub struct NList64 {
     /// gets relocated. If the value of the n_sect field is NO_SECT then it's n_value field is not
     /// changed by the link editor.
     pub n_sect: u8,
+    /// A 16-bit value providing additional information about the nature of this symbol.
     pub n_desc: u16,
+    /// An integer that contains the value of the symbol. The format of this value is different for
+    /// each type of symbol table entry (as specified by the n_type field). For the N_SECT symbol
+    /// type, n_value is the address of the symbol. See the description of the n_type field for
+    /// information on other possible values.
     pub n_value: u64,
 }
 
@@ -105,6 +110,8 @@ impl NTypeField {
 #[derive(FromPrimitive, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NType {
     /// Undefined, n_sect == NO_SECT
+    /// Undefined symbols are symbols referenced in this module but defined in a different module.
+    /// n_value is 0.
     Undf = 0x0,
     /// Absolute, n_sect == NO_SECT
     Abs = 0x2,

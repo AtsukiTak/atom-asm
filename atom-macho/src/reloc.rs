@@ -41,19 +41,29 @@ impl RelocationInfo {
         // (inverse order if little endian, and vice versa).
         let (r_symbolnum, r_pcrel, r_length, r_extern, r_type) = if endian == Endian::Little {
             (
-                infos & 0x00FF_FFFF,                                // r_symbolnum
-                (infos & 0x0100_0000) > 0,                          // r_pcrel
-                RelocLength::from_u32((infos & 0x0600_0000) >> 25), // r_length
-                infos & 0x0800_0000 > 0,                            // r_extern
-                ((infos & 0xF000_0000) >> 28) as u8,                // r_type
+                // r_symbolnum
+                infos & 0x00FF_FFFF,
+                // r_pcrel
+                (infos & 0x0100_0000) > 0,
+                // r_length
+                RelocLength::from_u32((infos & 0x0600_0000) >> 25),
+                // r_extern
+                infos & 0x0800_0000 > 0,
+                // r_type
+                ((infos & 0xF000_0000) >> 28) as u8,
             )
         } else {
             (
-                (infos & 0xFFFF_FF00) >> 8,                        // r_symbolnum
-                infos & 0x0000_0080 > 0,                           // r_pcrel
-                RelocLength::from_u32((infos & 0x0000_0060) >> 5), // r_length
-                infos & 0x0000_0010 > 0,                           // r_extern
-                (infos & 0x0000_000F) as u8,                       // r_type
+                // r_symbolnum
+                (infos & 0xFFFF_FF00) >> 8,
+                // r_pcrel
+                infos & 0x0000_0080 > 0,
+                // r_length
+                RelocLength::from_u32((infos & 0x0000_0060) >> 5),
+                // r_extern
+                infos & 0x0000_0010 > 0,
+                // r_type
+                (infos & 0x0000_000F) as u8,
             )
         };
 
@@ -124,6 +134,80 @@ impl RelocLength {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum X86RelocType {
+    Vanilla = 0,
+    Pair = 1,
+    Sectdiff = 2,
+    PbLaPtr = 3,
+    LocalSectdiff = 4,
+    Tlv = 5,
+}
+
+impl X86RelocType {
+    pub fn to_u8(self) -> u8 {
+        self as u8
+    }
+
+    pub fn from_u8(n: u8) -> Self {
+        match n {
+            0 => X86RelocType::Vanilla,
+            1 => X86RelocType::Pair,
+            2 => X86RelocType::Sectdiff,
+            3 => X86RelocType::PbLaPtr,
+            4 => X86RelocType::LocalSectdiff,
+            5 => X86RelocType::Tlv,
+            _ => panic!("{} is not a valid x86 reloc type", n),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum X86_64RelocType {
+    /// Absolute address
+    Unsigned = 0,
+    /// Signed 32-bit displacement
+    Signed = 1,
+    /// A CALL/JMP instruction with 32-bit displacement
+    Branch = 2,
+    /// A MOVQ load of a GOT entry
+    GotLoad = 3,
+    /// Other GOT references
+    Got = 4,
+    /// Must be followed by a X86_64RelocType::Unsigned relocation
+    Subtractor = 5,
+    /// for signed 32-bit displacement with a -1 addend
+    Signed1 = 6,
+    /// for signed 32-bit displacement with a -2 addend
+    Signed2 = 7,
+    /// for signed 32-bit displacement with a -4 addend
+    Signed4 = 8,
+    /// for thread local variables
+    Tlv = 9,
+}
+
+impl X86_64RelocType {
+    pub fn to_u8(self) -> u8 {
+        self as u8
+    }
+
+    pub fn from_u8(n: u8) -> Self {
+        match n {
+            0 => X86_64RelocType::Unsigned,
+            1 => X86_64RelocType::Signed,
+            2 => X86_64RelocType::Branch,
+            3 => X86_64RelocType::GotLoad,
+            4 => X86_64RelocType::Got,
+            5 => X86_64RelocType::Subtractor,
+            6 => X86_64RelocType::Signed1,
+            7 => X86_64RelocType::Signed2,
+            8 => X86_64RelocType::Signed4,
+            9 => X86_64RelocType::Tlv,
+            _ => panic!("{} is not a valid x86_64 reloc type", n),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,7 +220,7 @@ mod tests {
             r_pcrel: true,
             r_length: RelocLength::Byte,
             r_extern: false,
-            r_type: 0,
+            r_type: X86_64RelocType::Unsigned.to_u8(),
         };
 
         let mut buf = Vec::new();
