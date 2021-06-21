@@ -110,11 +110,34 @@ impl Object {
             .chain(self.data_sect.iter().map(|s| s as &dyn Section))
             .chain(self.bss_sect.iter().map(|s| s as &dyn Section))
     }
+
+    fn gen_symtab_command(&self, symoff: u32, stroff: u32) -> SymtabCommand {
+        SymtabCommand {
+            cmd: SymtabCommand::TYPE,
+            cmdsize: SymtabCommand::SIZE,
+            symoff,
+            nsyms: self
+                .sections()
+                .map(|sect| sect.symbols().len() as u32)
+                .sum(),
+            stroff,
+            strsize: self
+                .sections()
+                .map(|sect| {
+                    sect.symbols()
+                        .iter()
+                        .map(|sym| sym.name().len() as u32 + 1)
+                        .sum::<u32>()
+                })
+                .sum(),
+        }
+    }
 }
 
 trait Section {
     fn vm_size(&self) -> u64;
     fn file_size(&self) -> u32;
+    fn symbols(&self) -> &[Symbol];
     fn num_relocs(&self) -> u32;
     fn gen_section64(&self, vm_addr: u64, offset: u32, reloc_offset: u32) -> Section64;
 }
@@ -132,6 +155,10 @@ impl Section for TextSection {
 
     fn file_size(&self) -> u32 {
         self.bytes.len() as u32
+    }
+
+    fn symbols(&self) -> &[Symbol] {
+        &self.symbols[..]
     }
 
     fn num_relocs(&self) -> u32 {
@@ -179,6 +206,10 @@ impl Section for DataSection {
         self.bytes.len() as u32
     }
 
+    fn symbols(&self) -> &[Symbol] {
+        &self.symbols[..]
+    }
+
     fn num_relocs(&self) -> u32 {
         self.relocs.len() as u32
     }
@@ -223,6 +254,10 @@ impl Section for BssSection {
 
     fn num_relocs(&self) -> u32 {
         0
+    }
+
+    fn symbols(&self) -> &[Symbol] {
+        &self.symbols[..]
     }
 
     fn gen_section64(&self, addr: u64, _offset: u32, _reloff: u32) -> Section64 {
