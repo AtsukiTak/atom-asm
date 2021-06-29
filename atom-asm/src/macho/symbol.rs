@@ -1,3 +1,4 @@
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Symbol {
     Undef { name: String },
     Abs { name: String, val: u64, ext: bool },

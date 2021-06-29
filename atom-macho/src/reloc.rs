@@ -7,23 +7,24 @@ use std::io::{Read, Write};
 pub struct RelocationInfo {
     /// In MH_OBJECT files, this is an offset from the start of the section to the item containing
     /// the address requiring relocation.
-    r_address: i32,
+    pub r_address: i32,
     /// Indicates symbol index if r_extern is true or section ordinal if r_extern is false.
     /// This field is set to R_ABS for relocation entries for absolute symbols, which need no
     /// relocation.
-    r_symbolnum: u32,
+    pub r_symbolnum: u32,
     /// Indicates whether the item containing the address to be relocated is part of a CPU
     /// instruction that uses PC-relative addressing.
     ///
     /// For addresses contained in PC-relative instructions, the CPU adds the address of the
     /// instruction to the address contained in the instruction.
-    r_pcrel: bool,
-    r_length: RelocLength,
+    pub r_pcrel: bool,
+    pub r_length: RelocLength,
     /// Indicates whether the r_symbolnum field is an index into the symbol table (true) or a section
     /// number (false).
-    r_extern: bool,
+    /// NOTE: externでないRelocationInfoがどういう場面で有用なのかわかっていない。
+    pub r_extern: bool,
     /// if not 0, machine specific relocation type
-    r_type: u8,
+    pub r_type: u8,
 }
 
 impl RelocationInfo {

@@ -21,8 +21,9 @@
 //! 100 |_________RelocationInfo________|
 //! 110 |                               |
 //! 120 |_________SymbolTable___________|
-//!  E0 |_________StringTable_______|
+//! 130 |_________StringTable_______|
 mod header;
 mod load_command;
-mod object;
+pub mod object;
+mod section;
 mod symbol;
