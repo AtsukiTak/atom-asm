@@ -1,4 +1,5 @@
 use super::{section::Sections, symbol::Symbol};
+use crate::num::NumExt as _;
 use atom_macho::{
     header::{CpuSubTypeX86_64, CpuType, FileType, Flags, Header64, Magic},
     load_command::{
@@ -30,9 +31,8 @@ impl Object {
         self.gen_segment_command64().write_into(write);
 
         // write Section64
-        self.gen_section64()
-            .iter()
-            .for_each(|sect| sect.write_into(write));
+        let sections = self.gen_section64();
+        sections.iter().for_each(|sect| sect.write_into(write));
 
         // write SymtabCommand
         self.gen_symtab_command().write_into(write);
@@ -44,9 +44,9 @@ impl Object {
         let stab = self.gen_string_table();
 
         // create Vec<NList64> (write later)
-        let symbols = self.gen_nlist64s(&stab);
+        let symbols = self.gen_nlist64s(&sections, &stab);
 
-        // write RelocationInfo
+        // write Vec<RelocationInfo>
         self.gen_relocation_infos(&symbols, &stab)
             .iter()
             .for_each(|reloc| reloc.write_into(write));
@@ -83,7 +83,7 @@ impl Object {
                 + SegmentCommand64::SIZE
                 + self.sections.len() * Section64::SIZE
                 + SymtabCommand::SIZE) as u64,
-            filesize: self.sections.file_size() as u64,
+            filesize: self.sections.file_size().aligned(8) as u64,
             maxprot: 7,
             initprot: 7,
             nsects: self.sections.len(),
@@ -97,7 +97,7 @@ impl Object {
             + SegmentCommand64::SIZE
             + self.sections.len() * Section64::SIZE
             + SymtabCommand::SIZE;
-        let mut reloc_start = data_start + self.sections.file_size();
+        let mut reloc_start = data_start + self.sections.file_size().aligned(8);
 
         self.sections
             .iter()
@@ -121,11 +121,16 @@ impl Object {
             + SegmentCommand64::SIZE
             + self.sections.len() * Section64::SIZE
             + SymtabCommand::SIZE
-            + self.sections.file_size()
-            + self.sections.num_relocs();
+            + self.sections.file_size().aligned(8)
+            + self.sections.num_relocs() * RelocationInfo::SIZE;
         let nsyms = self.sections.num_symbols();
         let stroff = symoff + nsyms * NList64::SIZE;
-        let strsize = self.sections.sum_symbol_names_len();
+        let strsize = self
+            .sections
+            .symbols()
+            .map(|sym| sym.name().len() as u32 + 1)
+            .sum::<u32>()
+            + 1;
 
         SymtabCommand {
             cmd: SymtabCommand::TYPE,
@@ -155,26 +160,31 @@ impl Object {
                 r_pcrel: reloc.pcrel,
                 r_length: RelocLength::from_u32(reloc.len as u32),
                 r_extern: true,
-                r_type: 0,
+                r_type: 1,
             })
             .collect()
     }
 
-    fn gen_nlist64s(&self, stab: &StringTable) -> Vec<NList64> {
+    fn gen_nlist64s(&self, sections: &Vec<Section64>, stab: &StringTable) -> Vec<NList64> {
         fn get_strx(stab: &StringTable, name: &str) -> u32 {
-            stab.as_ref()
-                .split(|byte| *byte == 0)
-                .enumerate()
-                .find(|(_, s)| *s == name.as_bytes())
-                .map(|(idx, _)| idx as u32)
-                .unwrap()
+            let mut idx = 0;
+            for s in stab.iter() {
+                idx += 1;
+                if s == name {
+                    break;
+                } else {
+                    idx += s.len() as u32;
+                }
+            }
+            idx
         }
 
         self.sections
             .iter()
             .enumerate()
-            .flat_map(|(i, section)| section.symbols().iter().map(move |sym| (i, sym)))
-            .map(|(sect_idx, symbol)| match symbol {
+            .map(|(i, sect)| (i + 1, sect)) // section番号は1始まり
+            .flat_map(|(i, section)| section.symbols().iter().map(move |sym| (i, section, sym)))
+            .map(|(sect_idx, section, symbol)| match symbol {
                 Symbol::Undef { name } => NList64 {
                     n_strx: get_strx(stab, name.as_str()),
                     n_type: NTypeField::Norm {
@@ -206,7 +216,7 @@ impl Object {
                     },
                     n_sect: sect_idx as u8,
                     n_desc: 0,
-                    n_value: *addr,
+                    n_value: sections[sect_idx - 1].addr + *addr,
                 },
             })
             .collect()

@@ -4,39 +4,39 @@ use atom_macho::load_command::segment64::{Section64, SectionAttr, SectionAttrs, 
 use std::io::Write;
 
 pub struct Sections {
-    pub text_sect: Option<TextSection>,
-    pub data_sect: Option<DataSection>,
-    pub bss_sect: Option<BssSection>,
+    pub text: Option<TextSection>,
+    pub data: Option<DataSection>,
+    pub bss: Option<BssSection>,
 }
 
 impl Sections {
     pub fn new() -> Self {
         Sections {
-            text_sect: None,
-            data_sect: None,
-            bss_sect: None,
+            text: None,
+            data: None,
+            bss: None,
         }
     }
 
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = &'a dyn Section> {
-        let text_iter = self.text_sect.iter().map(|s| s as &dyn Section);
-        let data_iter = self.data_sect.iter().map(|s| s as &dyn Section);
-        let bss_iter = self.bss_sect.iter().map(|s| s as &dyn Section);
+        let text_iter = self.text.iter().map(|s| s as &dyn Section);
+        let data_iter = self.data.iter().map(|s| s as &dyn Section);
+        let bss_iter = self.bss.iter().map(|s| s as &dyn Section);
         text_iter.chain(data_iter).chain(bss_iter)
     }
 
     pub fn len(&self) -> u32 {
-        self.text_sect.is_some() as u32
-            + self.data_sect.is_some() as u32
-            + self.bss_sect.is_some() as u32
+        self.text.is_some() as u32 + self.data.is_some() as u32 + self.bss.is_some() as u32
     }
 
     pub fn vm_size(&self) -> u64 {
         self.iter().map(|s| s.vm_size()).sum()
     }
 
+    /// # NOTE
+    /// unaligned
     pub fn file_size(&self) -> u32 {
-        self.iter().map(|s| s.file_size()).sum::<u32>().aligned(8)
+        self.iter().map(|s| s.file_size()).sum::<u32>()
     }
 
     pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
@@ -53,10 +53,6 @@ impl Sections {
 
     pub fn num_symbols(&self) -> u32 {
         self.iter().map(|s| s.num_symbols()).sum()
-    }
-
-    pub fn sum_symbol_names_len(&self) -> u32 {
-        self.iter().map(|s| s.sum_symbol_name_len()).sum()
     }
 
     /// write all section data
@@ -84,23 +80,15 @@ pub trait Section {
         self.symbols().len() as u32
     }
 
-    fn sum_symbol_name_len(&self) -> u32 {
-        self.symbols()
-            .iter()
-            // +1 は null pointer のサイズ
-            .map(|sym| sym.name().len() as u32 + 1)
-            .sum()
-    }
-
     fn num_relocs(&self) -> u32 {
         self.relocs().len() as u32
     }
 }
 
 pub struct TextSection {
-    bytes: Vec<u8>,
-    symbols: Vec<Symbol>,
-    relocs: Vec<Reloc>,
+    pub bytes: Vec<u8>,
+    pub symbols: Vec<Symbol>,
+    pub relocs: Vec<Reloc>,
 }
 
 impl Section for TextSection {
@@ -147,9 +135,9 @@ impl Section for TextSection {
 }
 
 pub struct DataSection {
-    bytes: Vec<u8>,
-    symbols: Vec<Symbol>,
-    relocs: Vec<Reloc>,
+    pub bytes: Vec<u8>,
+    pub symbols: Vec<Symbol>,
+    pub relocs: Vec<Reloc>,
 }
 
 impl Section for DataSection {

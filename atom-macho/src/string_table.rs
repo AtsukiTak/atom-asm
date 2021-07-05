@@ -27,6 +27,13 @@ impl StringTable {
     pub fn len(&self) -> usize {
         self.data.len()
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &str> {
+        self.as_ref()
+            .split(|b| *b == 0)
+            .skip(1)
+            .map(|bytes| std::str::from_utf8(bytes).unwrap())
+    }
 }
 
 impl AsRef<[u8]> for StringTable {

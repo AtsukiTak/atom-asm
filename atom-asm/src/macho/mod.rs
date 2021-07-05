@@ -25,5 +25,5 @@
 mod header;
 mod load_command;
 pub mod object;
-mod section;
-mod symbol;
+pub mod section;
+pub mod symbol;

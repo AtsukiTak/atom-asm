@@ -273,7 +273,7 @@ mod tests {
 
         assert_eq!(buf.len(), Header64::SIZE as usize);
 
-        let read = Header64::read_from(&mut buf.as_slice());
+        let (read, _) = Header64::read_from(&mut buf.as_slice());
         assert_eq!(read, header);
     }
 }
