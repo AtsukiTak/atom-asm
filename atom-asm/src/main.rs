@@ -1,10 +1,10 @@
 mod macho;
 mod num;
+mod object;
 
-use self::macho::{
-    object::Object,
-    section::{DataSection, Reloc, TextSection},
-    symbol::Symbol,
+use self::{
+    macho::write_object_into,
+    object::{DataSection, Object, Reloc, Symbol, TextSection},
 };
 use std::fs::{File, OpenOptions};
 
@@ -51,7 +51,7 @@ fn main() {
         relocs: vec![],
     });
 
-    obj.write_into(&mut file);
+    write_object_into(&obj, &mut file);
 }
 
 fn open_file(path: &str) -> File {
