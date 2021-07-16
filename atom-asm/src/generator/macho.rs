@@ -38,6 +38,7 @@ use atom_macho::{
 };
 use std::io::Write;
 
+/// ObjectをMach-O形式で書き込む
 pub fn write_object_into<W: Write>(object: &Object, write: &mut W) {
     // write Header64
     gen_header64(object).write_into(write);
@@ -73,6 +74,8 @@ pub fn write_object_into<W: Write>(object: &Object, write: &mut W) {
     write.write_all(stab.as_ref()).unwrap();
 }
 
+/// object形式の `Header64` を生成する.
+/// 現状、x86-64限定.
 fn gen_header64(object: &Object) -> Header64 {
     Header64 {
         magic: Magic::Magic64,
@@ -91,6 +94,7 @@ fn gen_segment_command64(object: &Object) -> SegmentCommand64 {
     SegmentCommand64 {
         cmd: SegmentCommand64::TYPE,
         cmdsize: SegmentCommand64::SIZE + object.sections().len() * Section64::SIZE,
+        // object fileのsegnameは常に空文字
         segname: "".to_string(),
         vmaddr: 0,
         vmsize: object.sections().iter().map(|sect| sect.vm_size()).sum(),
@@ -104,6 +108,8 @@ fn gen_segment_command64(object: &Object) -> SegmentCommand64 {
             .map(|sect| sect.file_size())
             .sum::<u32>()
             .aligned(8) as u64,
+        // object fileのprotectionは常に7
+        // つまりrwxの全てのbitが立っている状態
         maxprot: 7,
         initprot: 7,
         nsects: object.sections().len(),
