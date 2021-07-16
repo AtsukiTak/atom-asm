@@ -1,9 +1,9 @@
-mod macho;
+mod generator;
 mod num;
 mod object;
 
 use self::{
-    macho::write_object_into,
+    generator::macho::write_object_into,
     object::{DataSection, Object, Reloc, Symbol, TextSection},
 };
 use std::fs::{File, OpenOptions};
