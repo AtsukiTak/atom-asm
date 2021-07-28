@@ -1,6 +1,7 @@
 mod generator;
 mod num;
 mod object;
+mod parser;
 
 use self::{
     generator::macho::write_object_into,
