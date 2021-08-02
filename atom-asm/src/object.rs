@@ -6,9 +6,9 @@ impl Object {
     pub fn new() -> Self {
         Object {
             sections: Sections {
-                text: None,
-                data: None,
-                bss: None,
+                text: TextSection::new(),
+                data: DataSection::new(),
+                bss: BssSection::new(),
             },
         }
     }
@@ -19,21 +19,24 @@ impl Object {
 }
 
 pub struct Sections {
-    pub text: Option<TextSection>,
-    pub data: Option<DataSection>,
-    pub bss: Option<BssSection>,
+    pub text: TextSection,
+    pub data: DataSection,
+    pub bss: BssSection,
 }
 
 impl Sections {
+    /// iterate of all sections except empty section.
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = SectionRef<'a>> {
-        let text_iter = self.text.iter().map(SectionRef::Text);
-        let data_iter = self.data.iter().map(SectionRef::Data);
-        let bss_iter = self.bss.iter().map(SectionRef::Bss);
-        text_iter.chain(data_iter).chain(bss_iter)
+        let arr = [
+            SectionRef::Text(&self.text),
+            SectionRef::Data(&self.data),
+            SectionRef::Bss(&self.bss),
+        ];
+        std::array::IntoIter::new(arr).filter(|sect| !sect.is_empty())
     }
 
     pub fn len(&self) -> u32 {
-        self.text.is_some() as u32 + self.data.is_some() as u32 + self.bss.is_some() as u32
+        self.iter().count() as u32
     }
 }
 
@@ -52,6 +55,10 @@ impl<'a> SectionRef<'a> {
             Data(data) => data.bytes.len() as u64,
             Bss(bss) => bss.size,
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.vm_size() == 0
     }
 
     pub fn file_data(&self) -> &[u8] {
@@ -110,15 +117,44 @@ pub struct TextSection {
     pub relocs: Vec<Reloc>,
 }
 
+impl TextSection {
+    pub fn new() -> TextSection {
+        TextSection {
+            bytes: Vec::new(),
+            symbols: Vec::new(),
+            relocs: Vec::new(),
+        }
+    }
+}
+
 pub struct DataSection {
     pub bytes: Vec<u8>,
     pub symbols: Vec<Symbol>,
     pub relocs: Vec<Reloc>,
 }
 
+impl DataSection {
+    pub fn new() -> DataSection {
+        DataSection {
+            bytes: Vec::new(),
+            symbols: Vec::new(),
+            relocs: Vec::new(),
+        }
+    }
+}
+
 pub struct BssSection {
     pub size: u64,
     pub symbols: Vec<Symbol>,
+}
+
+impl BssSection {
+    pub fn new() -> Self {
+        BssSection {
+            size: 0,
+            symbols: Vec::new(),
+        }
+    }
 }
 
 pub struct Reloc {
