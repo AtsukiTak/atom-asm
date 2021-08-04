@@ -2,6 +2,7 @@ use std::io::{BufRead, BufReader, Read};
 
 pub struct LineStream<R> {
     read: BufReader<R>,
+    buf: String,
     next_line_num: usize,
 }
 
@@ -9,42 +10,38 @@ impl<R: Read> LineStream<R> {
     pub fn new(read: R) -> Self {
         LineStream {
             read: BufReader::new(read),
+            buf: String::new(),
             next_line_num: 0,
         }
     }
-}
 
-impl<R: Read> Iterator for LineStream<R> {
-    type Item = RawLine;
-
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next<'a>(&'a mut self) -> Option<RawLine<'a>> {
         self.next_line_num += 1;
-
-        let mut raw_str = String::new();
+        self.buf.clear();
 
         // 次の行を読み込み
-        let is_eof = self.read.read_line(&mut raw_str).unwrap() == 0;
+        let is_eof = self.read.read_line(&mut self.buf).unwrap() == 0;
         if is_eof {
             return None;
         }
 
         Some(RawLine {
-            raw_str,
+            raw_str: self.buf.as_str(),
             line_num: self.next_line_num,
         })
     }
 }
 
-pub struct RawLine {
-    raw_str: String,
+pub struct RawLine<'a> {
+    raw_str: &'a str,
     line_num: usize,
 }
 
-impl RawLine {
-    pub fn tokens<'a>(&'a self) -> impl Iterator<Item = Token<'a>> {
+impl<'a> RawLine<'a> {
+    pub fn tokens(&self) -> impl Iterator<Item = Token<'a>> {
         // コメントを取り除く
         let s_uncommented = match self.raw_str.find(";") {
-            None => self.raw_str.as_str(),
+            None => self.raw_str,
             Some(i) => self.raw_str.split_at(i).0,
         };
 
@@ -53,7 +50,7 @@ impl RawLine {
             .map(|s| Token { s })
     }
 
-    pub fn nth_token<'a>(&'a self, idx: usize) -> Option<Token<'a>> {
+    pub fn nth_token(&'a self, idx: usize) -> Option<Token<'a>> {
         self.tokens().nth(idx)
     }
 

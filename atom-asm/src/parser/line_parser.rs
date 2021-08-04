@@ -1,4 +1,4 @@
-use super::line_stream::{RawLine, Token};
+use super::line_stream::RawLine;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Line {
