@@ -1,4 +1,4 @@
-use super::line_stream::RawLine;
+use super::line_stream::{RawLine, Token};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Line {
@@ -26,10 +26,10 @@ pub struct Instruction {
     len: u8,
 }
 
-fn parse_line(raw_line: RawLine) -> Option<Line> {
+pub fn parse_line(raw_line: RawLine) -> Option<Line> {
     let mut tokens = raw_line.tokens();
 
-    let line = match raw_line.nth_token(0) {
+    let line = match raw_line.nth_token(0).map(|t| t.as_str()) {
         Some("section") => parse_section_declare(&raw_line),
         Some("global") => parse_global_symbol_def(&raw_line),
         Some(s) if s.ends_with(":") => parse_symbol_def(&raw_line),
@@ -43,14 +43,14 @@ fn parse_line(raw_line: RawLine) -> Option<Line> {
 fn parse_section_declare(line: &RawLine) -> Line {
     line.expect_token_num(2);
 
-    let sect_type = match line.nth_token(1) {
+    let sect_type = match line.nth_token(1).map(|t| t.as_str()) {
         Some(".text") => SectionType::Text,
         Some(".data") => SectionType::Data,
         Some(".bss") => SectionType::Bss,
         Some(sect) => panic!("Unrecognized section {}", sect),
         None => panic!("section name is not specified"),
     };
-    Line::SectionDeclare(sect_type);
+    Line::SectionDeclare(sect_type)
 }
 
 fn parse_global_symbol_def(line: &RawLine) -> Line {
@@ -58,23 +58,25 @@ fn parse_global_symbol_def(line: &RawLine) -> Line {
 
     // グローバルシンボル定義
     let symbol_name = match line.nth_token(1) {
-        Some(sym) => sym.to_string(),
+        Some(sym) => sym.as_str().to_string(),
         None => panic!("symbol name is not specified"),
     };
-    Line::GlobalSymbol(symbol_name)
+    Line::GlobalSymbolDef(symbol_name)
 }
 
 fn parse_symbol_def(line: &RawLine) -> Line {
     line.expect_token_num(1);
 
     // シンボル定義
-    let (symbol, _colon) = token1.split_at(token1.len() - 1);
+    let token_str = line.nth_token(0).unwrap().as_str();
+    let (symbol, _colon) = token_str.split_at(token_str.len() - 1);
     Line::SymbolDef(symbol.to_string())
 }
 
 fn parse_instruction(line: &RawLine) -> Line {
-    match line.nth_token(0).unwrap() {
+    match line.nth_token(0).unwrap().as_str() {
         "mov" => todo!(),
         "syscall" => todo!(),
+        opcode => panic!("unrecognized opcode {}", opcode),
     }
 }

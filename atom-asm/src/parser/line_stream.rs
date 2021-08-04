@@ -74,11 +74,3 @@ impl<'a> Token<'a> {
         self.s
     }
 }
-
-impl<'a> std::ops::Deref for Token<'a> {
-    type Target = str;
-
-    fn deref(&self) -> &str {
-        self.s
-    }
-}
